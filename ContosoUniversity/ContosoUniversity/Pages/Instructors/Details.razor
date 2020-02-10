@@ -1,0 +1,98 @@
+﻿@page "/instructors/details/{id:int}"
+@inject IMediator _mediator
+
+<h2>Details</h2>
+
+<Loading When="Data == null">
+
+    <div>
+        <h4>Instructor</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                <DisplayLabel For="() => Data.LastName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.LastName" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.FirstMidName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.FirstMidName" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.HireDate" />
+            </dt>
+            <dd>
+                <Display For="() => Data.HireDate" />
+            </dd>
+        </dl>
+    </div>
+    <div>
+        <a href="/instructors/edit/@Data.Id">Edit</a> |
+        <a href="/instructors">Back to List</a>
+    </div>
+
+</Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Model Data { get; private set; }
+
+    protected override async Task OnInitializedAsync() =>
+        Data = await _mediator.Send(new Query { Id = Id });
+
+    public class Query : IRequest<Model>
+    {
+        public int? Id { get; set; }
+    }
+
+    public class Validator : AbstractValidator<Query>
+    {
+        public Validator()
+        {
+            RuleFor(m => m.Id).NotNull();
+        }
+    }
+
+    public class Model
+    {
+        public int? Id { get; set; }
+
+        public string LastName { get; set; }
+        [Display(Name = "First Name")]
+        public string FirstMidName { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]
+        public DateTime? HireDate { get; set; }
+
+        [Display(Name = "Location")]
+        public string OfficeAssignmentLocation { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Instructor, Model>();
+    }
+
+    public class Handler : IRequestHandler<Query, Model>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public Handler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public Task<Model> Handle(Query message, CancellationToken token) => _db
+            .Instructors
+            .Where(i => i.Id == message.Id)
+            .ProjectTo<Model>(_configuration)
+            .SingleOrDefaultAsync(token);
+    }
+}

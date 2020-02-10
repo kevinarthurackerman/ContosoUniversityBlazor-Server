@@ -1,0 +1,18 @@
+﻿<label>@label</label>
+
+@code {
+    [Parameter] public Expression<Func<object>> For { get; set; }
+
+    private string label => GetDisplayName();
+
+    private string GetDisplayName()
+    {
+        if(For.Body is MemberExpression forMember)
+        {
+            var value = forMember.Member.GetCustomAttribute(typeof(DisplayNameAttribute)) as DisplayNameAttribute;
+            return value?.DisplayName ?? forMember.Member.Name ?? "";
+        }
+
+        return "";
+    }
+}

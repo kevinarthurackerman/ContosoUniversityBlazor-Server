@@ -1,0 +1,129 @@
+﻿@page "/courses/edit/{id:int}"
+@inject IMediator _mediator
+@inject NavigationManager  _navigationManager
+
+<h2>Edit</h2>
+
+<h4>Course</h4>
+<hr />
+
+<Loading When="Data == null">
+
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="@Data" method="post">
+                <FormValidationSummary />
+                <InputNumber @bind-Value="Data.Id" />
+
+                <div class="form-group">
+                    <DisplayLabel For="() => Data.Id" />
+                    <div><Display For="() => Data.Id" /></div>
+                </div>
+
+                <FormBlock For="() => Data.Title" />
+                <FormBlock For="() => Data.Credits" />
+                <FormBlock For="() => Data.Department" />
+
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div>
+        <a href="/courses">Back to List</a>
+    </div>
+
+ </Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Command Data { get; set; }
+
+    protected override async Task OnInitializedAsync() => Data = await _mediator.Send(new Query { Id = Id });
+
+    private async Task OnPostAsync()
+    {
+        await _mediator.Send(Data);
+
+        _navigationManager.NavigateTo("/courses");
+    }
+
+    public class Query : IRequest<Command>
+    {
+        public int? Id { get; set; }
+    }
+
+    public class QueryValidator : AbstractValidator<Query>
+    {
+        public QueryValidator()
+        {
+            RuleFor(m => m.Id).NotNull();
+        }
+    }
+
+    public class QueryHandler : IRequestHandler<Query, Command>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public QueryHandler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public Task<Command> Handle(Query message, CancellationToken token) =>
+            _db.Courses
+                .Where(c => c.Id == message.Id)
+                .ProjectTo<Command>(_configuration)
+                .SingleOrDefaultAsync(token);
+    }
+
+    public class Command : IRequest
+    {
+        [Display(Name = "Number")]
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public int? Credits { get; set; }
+        public Department Department { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Course, Command>().ReverseMap();
+    }
+
+    public class CommandValidator : AbstractValidator<Command>
+    {
+        public CommandValidator()
+        {
+            RuleFor(m => m.Title).NotNull().Length(3, 50);
+            RuleFor(m => m.Credits).NotNull().InclusiveBetween(0, 5);
+        }
+    }
+
+    public class CommandHandler : IRequestHandler<Command, Unit>
+    {
+        private readonly SchoolContext _db;
+        private readonly IMapper _mapper;
+
+        public CommandHandler(SchoolContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+        {
+            var course = await _db.Courses.FindAsync(request.Id);
+
+            _mapper.Map(request, course);
+
+            return default;
+        }
+    }
+}

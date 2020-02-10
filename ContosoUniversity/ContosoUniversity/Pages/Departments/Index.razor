@@ -1,0 +1,96 @@
+﻿@page "/departments"
+@inject IMediator _mediator
+
+<h2>Departments</h2>
+
+<Loading When="Data == null">
+
+    <p>
+        <a href="/departments/create">Create New</a>
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Budget</th>
+                <th>Start Date</th>
+                <th>Administrator</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Data)
+            {
+                <tr>
+                    <td>
+                        <Display For="() => item.Name" />
+                    </td>
+                    <td>
+                        <Display For="() => item.Budget" />
+                    </td>
+                    <td>
+                        <Display For="() => item.StartDate" />
+                    </td>
+                    <td>
+                        <Display For="() => item.AdministratorFullName" />
+                    </td>
+                    <td>
+                        <a href="/departments/edit/@item.Id">Edit</a> |
+                        <a href="/departments/details/@item.Id">Details</a> |
+                        <a href="/departments/delete/@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</Loading>
+
+@code {
+    public List<Model> Data { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+        => Data = await _mediator.Send(new Query());
+
+    public class Query : IRequest<List<Model>>
+    {
+    }
+
+    public class Model
+    {
+        public string Name { get; set; }
+
+        public decimal Budget { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public int Id { get; set; }
+
+        public string AdministratorFullName { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Department, Model>();
+    }
+
+    public class QueryHandler : IRequestHandler<Query, List<Model>>
+    {
+        private readonly SchoolContext _context;
+        private readonly IConfigurationProvider _configuration;
+
+        public QueryHandler(SchoolContext context,
+            IConfigurationProvider configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
+
+        public Task<List<Model>> Handle(Query message,
+            CancellationToken token) => _context
+            .Departments
+            .ProjectTo<Model>(_configuration)
+            .DecompileAsync()
+            .ToListAsync(token);
+    }
+}

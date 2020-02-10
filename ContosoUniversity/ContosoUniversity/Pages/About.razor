@@ -1,0 +1,50 @@
+﻿@page "/about"
+@inject SchoolContext _context;
+
+<h2>Student Body Statistics</h2>
+
+<Loading When="Data == null">
+
+    <table>
+        <tr>
+            <th>
+                Enrollment Date
+            </th>
+            <th>
+                Students
+            </th>
+        </tr>
+
+        @foreach (var item in Data)
+        {
+            <tr>
+                <td>
+                    <Display For="() => item.EnrollmentDate" />
+                </td>
+                <td>
+                    @item.StudentCount
+                </td>
+            </tr>
+        }
+    </table>
+
+</Loading>
+
+@code {
+    public IEnumerable<EnrollmentDateGroup> Data { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var groups = await _context
+            .Students
+            .GroupBy(x => x.EnrollmentDate)
+            .Select(x => new EnrollmentDateGroup
+            {
+                EnrollmentDate = x.Key,
+                StudentCount = x.Count()
+            })
+            .ToListAsync();
+
+        Data = groups;
+    }
+}

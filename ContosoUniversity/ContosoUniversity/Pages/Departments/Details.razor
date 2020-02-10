@@ -1,0 +1,97 @@
+﻿@page "/departments/details/{id:int}"
+@inject IMediator _mediator
+
+<h2>Details</h2>
+
+<Loading When="Data == null">
+
+    <div>
+        <h4>Department</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                <DisplayLabel For="() => Data.Name" />
+            </dt>
+            <dd>
+                <Display For="() => Data.Name" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.Budget" />
+            </dt>
+            <dd>
+                <Display For="() => Data.Budget" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.StartDate" />
+            </dt>
+            <dd>
+                <Display For="() => Data.StartDate" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.AdministratorFullName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.AdministratorFullName" />
+            </dd>
+        </dl>
+    </div>
+    <div>
+        <a href="/departments/edit/@Data.Id">Edit</a> |
+        <a href="/departments">Back to List</a>
+    </div>
+
+ </Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Model Data { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+        => Data = await _mediator.Send(new Query { Id = Id });
+
+    public class Query : IRequest<Model>
+    {
+        public int Id { get; set; }
+    }
+
+    public class Model
+    {
+        public string Name { get; set; }
+
+        public decimal Budget { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public int Id { get; set; }
+
+        [Display(Name = "Administrator")]
+        public string AdministratorFullName { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Department, Model>();
+    }
+
+    public class QueryHandler : IRequestHandler<Query, Model>
+    {
+        private readonly SchoolContext _context;
+        private readonly IConfigurationProvider _configuration;
+
+        public QueryHandler(SchoolContext context, IConfigurationProvider configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
+
+        public Task<Model> Handle(Query message,
+            CancellationToken token) =>
+            _context.Departments
+            .Where(m => m.Id == message.Id)
+            .ProjectTo<Model>(_configuration)
+            .DecompileAsync()
+            .SingleOrDefaultAsync(token);
+    }
+}

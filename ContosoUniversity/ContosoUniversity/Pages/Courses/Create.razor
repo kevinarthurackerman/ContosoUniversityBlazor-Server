@@ -1,0 +1,83 @@
+﻿@page "/courses/create"
+@inject IMediator _mediator
+@inject NavigationManager  _navigationManager
+
+<h2>Create</h2>
+
+<h4>Course</h4>
+<hr />
+
+<Loading When="Data == null">
+
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="Data" method="post">
+                <FormValidationSummary/>
+                <FormBlock For="() => Data.Number" />
+                <FormBlock For="() => Data.Title" />
+                <FormBlock For="() => Data.Credits" />
+                <FormBlock For="() => Data.Department" />
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div>
+        <a href="/courses">Back to List</a>
+    </div>
+
+</Loading>
+
+@code {
+    public Command Data { get; set; }
+
+    private async Task OnPostAsync()
+    {
+        await _mediator.Send(Data);
+
+        _navigationManager.NavigateTo("/courses");
+    }
+
+    public class Command : IRequest<int>
+    {
+        [IgnoreMap]
+        public int Number { get; set; }
+        public string Title { get; set; }
+        public int Credits { get; set; }
+        public Department Department { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() =>
+            CreateMap<Command, Course>(MemberList.Source);
+        //.ForSourceMember(c => c.Number, opt => opt.Ignore());
+    }
+
+
+    public class Handler : IRequestHandler<Command, int>
+    {
+        private readonly SchoolContext _db;
+        private readonly IMapper _mapper;
+
+        public Handler(SchoolContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        public async Task<int> Handle(Command message, CancellationToken token)
+        {
+            var course = _mapper.Map<Command, Course>(message);
+            course.Id = message.Number;
+
+            _db.Courses.Add(course);
+
+            await _db.SaveChangesAsync(token);
+
+            return course.Id;
+        }
+    }
+}

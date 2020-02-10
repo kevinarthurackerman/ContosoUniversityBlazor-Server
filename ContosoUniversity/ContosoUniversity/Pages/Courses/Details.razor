@@ -1,0 +1,97 @@
+﻿@page "/courses/details/{id:int}"
+@inject IMediator _mediator
+
+<h2>Details</h2>
+
+<Loading When="Data == null">
+
+    <div>
+        <h4>Course</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                <DisplayLabel For="() => Data.Id" />
+            </dt>
+            <dd>
+                <Display For="() => Data.Id" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.Title" />
+            </dt>
+            <dd>
+                <Display For="() => Data.Title" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.Credits" />
+            </dt>
+            <dd>
+                <Display For="() => Data.Credits" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.DepartmentName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.DepartmentName" />
+            </dd>
+        </dl>
+    </div>
+    <div>
+        <a href="/courses/edit/@Data.Id">Edit</a> |
+        <a href="/courses">Back to List</a>
+    </div>
+
+ </Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Model Data { get; private set; }
+
+    protected override async Task OnInitializedAsync() => Data = await _mediator.Send(new Query { Id = Id });
+
+    public class Query : IRequest<Model>
+    {
+        public int? Id { get; set; }
+    }
+
+    public class Validator : AbstractValidator<Query>
+    {
+        public Validator()
+        {
+            RuleFor(m => m.Id).NotNull();
+        }
+    }
+
+    public class Model
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public int Credits { get; set; }
+        [Display(Name = "Department")]
+        public string DepartmentName { get; set; }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Course, Model>();
+    }
+
+    public class Handler : IRequestHandler<Query, Model>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public Handler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public Task<Model> Handle(Query message, CancellationToken token) =>
+            _db.Courses
+            .Where(i => i.Id == message.Id)
+            .ProjectTo<Model>(_configuration)
+            .SingleOrDefaultAsync(token);
+    }
+}

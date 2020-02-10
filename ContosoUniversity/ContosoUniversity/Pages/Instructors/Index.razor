@@ -1,0 +1,261 @@
+﻿@page "/instructors"
+@inject IMediator _mediator
+
+<h2>Instructors</h2>
+
+<Loading When="Data == null">
+
+    <p>
+        <a href="/instructors/create">Create New</a>
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Last Name</th>
+                <th>First Name</th>
+                <th>Hire Date</th>
+                <th>Office</th>
+                <th>Courses</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Data.Instructors)
+            {
+                string selectedRow = "";
+                if (item.Id == Data.InstructorId)
+                {
+                    selectedRow = "table-success";
+                }
+                <tr class="@selectedRow">
+                    <td>
+                        <Display For="() => item.LastName" />
+                    </td>
+                    <td>
+                        <Display For="() => item.FirstMidName" />
+                    </td>
+                    <td>
+                        <Display For="() => item.HireDate" />
+                    </td>
+                    <td>
+                        <Display For="() => item.OfficeAssignmentLocation" />
+                    </td>
+                    <td>
+                        @{
+                            foreach (var course in item.CourseAssignments)
+                            {
+                                @course.CourseId @:  @course.CourseTitle <br />
+                            }
+                        }
+                    </td>
+                    <td>
+                        <a href="/instructors/@item.Id">Select</a> |
+                        <a href="/instructors/edit/@item.Id">Edit</a> |
+                        <a href="/instructors/details/@item.Id">Details</a> |
+                        <a href="/instructors/delete/@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Data.Courses.Any())
+    {
+        <h3>Courses Taught by Selected Instructor</h3>
+        <table class="table">
+            <tr>
+                <th></th>
+                <th>Number</th>
+                <th>Title</th>
+                <th>Department</th>
+            </tr>
+
+            @foreach (var item in Data.Courses)
+            {
+                string selectedRow = "";
+                if (item.Id == Data.CourseId)
+                {
+                    selectedRow = "table-success";
+                }
+                <tr class="@selectedRow">
+                    <td>
+                        <a href="/instructors?id=@Data.InstructorId&courseId=@item.Id">Select</a>
+                    </td>
+                    <td>
+                        @item.Id
+                    </td>
+                    <td>
+                        @item.Title
+                    </td>
+                    <td>
+                        @item.DepartmentName
+                    </td>
+                </tr>
+            }
+
+        </table>
+    }
+    @if (Data.Enrollments.Any())
+    {
+        <h3>
+            Students Enrolled in Selected Course
+        </h3>
+        <table class="table">
+            <tr>
+                <th>Name</th>
+                <th>Grade</th>
+            </tr>
+            @foreach (var item in Data.Enrollments)
+            {
+                <tr>
+                    <td>
+                        @item.StudentFullName
+                    </td>
+                    <td>
+                        <Display For="() => item.Grade" />
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+</Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int CourseId { get; set; }
+
+    public Model Data { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+        => Data = await _mediator.Send(new Query { Id = Id, CourseId = CourseId });
+
+    public class Query : IRequest<Model>
+    {
+        public int? Id { get; set; }
+        public int? CourseId { get; set; }
+    }
+
+    public class Model
+    {
+        public int? InstructorId { get; set; }
+        public int? CourseId { get; set; }
+
+        public IList<Instructor> Instructors { get; set; }
+        public IList<Course> Courses { get; set; }
+        public IList<Enrollment> Enrollments { get; set; }
+
+        public class Instructor
+        {
+            public int Id { get; set; }
+
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Display(Name = "First Name")]
+            public string FirstMidName { get; set; }
+
+            [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+            [Display(Name = "Hire Date")]
+            public DateTime HireDate { get; set; }
+
+            public string OfficeAssignmentLocation { get; set; }
+
+            public IEnumerable<CourseAssignment> CourseAssignments { get; set; }
+        }
+
+        public class CourseAssignment
+        {
+            public int CourseId { get; set; }
+            public string CourseTitle { get; set; }
+        }
+
+        public class Course
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string DepartmentName { get; set; }
+        }
+
+        public class Enrollment
+        {
+            [DisplayFormat(NullDisplayText = "No grade")]
+            public Grade? Grade { get; set; }
+            public string StudentFullName { get; set; }
+        }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<Instructor, Model.Instructor>();
+            CreateMap<CourseAssignment, Model.CourseAssignment>();
+            CreateMap<Course, Model.Course>();
+            CreateMap<Enrollment, Model.Enrollment>();
+        }
+    }
+
+    public class Handler : IRequestHandler<Query, Model>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public Handler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public async Task<Model> Handle(Query message, CancellationToken token)
+        {
+            var instructors = await _db.Instructors
+                .Include(i => i.CourseAssignments)
+                .ThenInclude(c => c.Course)
+                .OrderBy(i => i.LastName)
+                .ProjectTo<Model.Instructor>(_configuration)
+                .ToListAsync(token)
+                ;
+
+            // EF Core cannot project child collections w/o Include
+            // See https://github.com/aspnet/EntityFrameworkCore/issues/9128
+            //var instructors = await _db.Instructors
+            //    .OrderBy(i => i.LastName)
+            //    .ProjectToListAsync<Model.Instructor>();
+
+            var courses = new List<Model.Course>();
+            var enrollments = new List<Model.Enrollment>();
+
+            if (message.Id != null)
+            {
+                courses = await _db.CourseAssignments
+                    .Where(ci => ci.InstructorId == message.Id)
+                    .Select(ci => ci.Course)
+                    .ProjectTo<Model.Course>(_configuration)
+                    .ToListAsync(token);
+            }
+
+            if (message.CourseId != null)
+            {
+                enrollments = await _db.Enrollments
+                    .Where(x => x.CourseId == message.CourseId)
+                    .ProjectTo<Model.Enrollment>(_configuration)
+                    .ToListAsync(token);
+            }
+
+            var viewModel = new Model
+            {
+                Instructors = instructors,
+                Courses = courses,
+                Enrollments = enrollments,
+                InstructorId = message.Id,
+                CourseId = message.CourseId
+            };
+
+            return viewModel;
+        }
+    }
+}

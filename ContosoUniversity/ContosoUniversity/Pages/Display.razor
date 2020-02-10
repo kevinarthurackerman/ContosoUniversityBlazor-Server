@@ -1,0 +1,11 @@
+﻿@typeparam TValue
+
+@value
+
+@code {
+    [Parameter] public Expression<Func<TValue>> For { get; set; }
+
+    private string value => GetValue();
+
+    private string GetValue() => For.Compile().Invoke()?.ToString() ?? String.Empty;
+}

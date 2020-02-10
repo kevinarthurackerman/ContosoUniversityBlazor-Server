@@ -1,0 +1,118 @@
+﻿@page "/students/details/{id:int}"
+@inject IMediator _mediator
+
+<h2>Details</h2>
+
+<Loading When="Data == null">
+
+    <div>
+        <h4>Student</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                <DisplayLabel For="() => Data.LastName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.LastName" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.FirstMidName" />
+            </dt>
+            <dd>
+                <Display For="() => Data.FirstMidName" />
+            </dd>
+            <dt>
+                <DisplayLabel For="() => Data.EnrollmentDate" />
+            </dt>
+            <dd>
+                <Display For="() => Data.EnrollmentDate" />
+            </dd>
+            <dt>
+                <display-label-tag for="Data.Enrollments" />
+            </dt>
+            <dd>
+                <table class="table">
+                    <tr>
+                        <th>Course Title</th>
+                        <th>Grade</th>
+                    </tr>
+                    @for (var i = 0; i < Data.Enrollments.Count; i++)
+                    {
+                        var item = Data.Enrollments[i];
+                        <tr>
+                            <td>
+                                <Display For="() => item.CourseTitle" />
+                            </td>
+                            <td>
+                                <Display For="() => item.Grade" />
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </dd>
+        </dl>
+    </div>
+    <div>
+        <a href="/students/edit/@Data.Id">Edit</a> |
+        <a href="/students">Back to List</a>
+    </div>
+
+</Loading>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Model Data { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+        => Data = await _mediator.Send(new Query { Id = Id });
+
+    public class Query : IRequest<Model>
+    {
+        public int Id { get; set; }
+    }
+
+    public class Model
+    {
+        public int Id { get; set; }
+        [Display(Name = "First Name")]
+        public string FirstMidName { get; set; }
+        public string LastName { get; set; }
+        public DateTime EnrollmentDate { get; set; }
+        public List<Enrollment> Enrollments { get; set; }
+
+        public class Enrollment
+        {
+            public string CourseTitle { get; set; }
+            public Grade? Grade { get; set; }
+        }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<Student, Model>();
+            CreateMap<Enrollment, Model.Enrollment>();
+        }
+    }
+
+    public class Handler : IRequestHandler<Query, Model>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public Handler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public Task<Model> Handle(Query message, CancellationToken token) => _db
+                .Students
+                .Where(s => s.Id == message.Id)
+                .ProjectTo<Model>(_configuration)
+                .SingleOrDefaultAsync(token);
+    }
+}

@@ -1,0 +1,91 @@
+﻿@page "/students/create"
+@inject IMediator _mediator
+@inject NavigationManager  _navigationManager
+
+<h2>Create</h2>
+
+<h4>Student</h4>
+<hr />
+
+<Loading When="Data == null">
+
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="@Data" method="post">
+                <FormValidationSummary />
+                <FormBlock For="() => Data.LastName" />
+                <FormBlock For="() => Data.FirstMidName" />
+                <FormBlock For="() => Data.EnrollmentDate" />
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div>
+        <a href="/Students">Back to List</a>
+    </div>
+
+</Loading>
+
+@code {
+    public Command Data { get; set; }
+
+    public void OnGet() => Data = new Command();
+
+    private async Task OnPostAsync()
+    {
+        await _mediator.Send(Data);
+
+        _navigationManager.NavigateTo("/students");
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Command, Student>(MemberList.Source);
+    }
+
+    public class Command : IRequest<int>
+    {
+        public string LastName { get; set; }
+
+        [Display(Name = "First Name")]
+        public string FirstMidName { get; set; }
+
+        public DateTime? EnrollmentDate { get; set; }
+    }
+
+    public class Validator : AbstractValidator<Command>
+    {
+        public Validator()
+        {
+            RuleFor(m => m.LastName).NotNull().Length(1, 50);
+            RuleFor(m => m.FirstMidName).NotNull().Length(1, 50);
+            RuleFor(m => m.EnrollmentDate).NotNull();
+        }
+    }
+
+    public class Handler : IRequestHandler<Command, int>
+    {
+        private readonly SchoolContext _db;
+        private readonly IMapper _mapper;
+
+        public Handler(SchoolContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        public async Task<int> Handle(Command message, CancellationToken token)
+        {
+            var student = _mapper.Map<Command, Student>(message);
+
+            _db.Students.Add(student);
+
+            await _db.SaveChangesAsync(token);
+
+            return student.Id;
+        }
+    }
+}

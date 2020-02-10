@@ -1,0 +1,107 @@
+﻿@page "/courses"
+@inject IMediator _mediator;
+
+<h2>Courses</h2>
+
+<Loading When="Data == null">
+
+    <p>
+        <a href="/courses/create">Create New</a>
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Number
+                </th>
+                <th>
+                    Title
+                </th>
+                <th>
+                    Credits
+                </th>
+                <th>
+                    Department
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Data.Courses)
+            {
+                <tr>
+                    <td>
+                        <Display For="() => item.Id" />
+                    </td>
+                    <td>
+                        <Display For="() => item.Title" />
+                    </td>
+                    <td>
+                        <Display For="() => item.Credits" />
+                    </td>
+                    <td>
+                        <Display For="() => item.DepartmentName" />
+                    </td>
+                    <td>
+                        <a href="/courses/edit/@item.Id">Edit</a> |
+                        <a href="/courses/details/@item.Id">Details</a> |
+                        <a href="/courses/delete/@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</Loading>
+
+@code {
+    public Result Data { get; private set; }
+
+    protected override async Task OnInitializedAsync() => Data = await _mediator.Send(new Query());
+
+    public class Query : IRequest<Result>
+    {
+    }
+
+    public class Result
+    {
+        public List<Course> Courses { get; set; }
+
+        public class Course
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public int Credits { get; set; }
+            public string DepartmentName { get; set; }
+        }
+    }
+
+    public class MappingProfile : Profile
+    {
+        public MappingProfile() => CreateMap<Course, Result.Course>();
+    }
+
+    public class Handler : IRequestHandler<Query, Result>
+    {
+        private readonly SchoolContext _db;
+        private readonly IConfigurationProvider _configuration;
+
+        public Handler(SchoolContext db, IConfigurationProvider configuration)
+        {
+            _db = db;
+            _configuration = configuration;
+        }
+
+        public async Task<Result> Handle(Query message, CancellationToken token)
+        {
+            var courses = await _db.Courses
+                .OrderBy(d => d.Id)
+                .ProjectToListAsync<Result.Course>(_configuration);
+
+            return new Result
+            {
+                Courses = courses
+            };
+        }
+    }
+}
