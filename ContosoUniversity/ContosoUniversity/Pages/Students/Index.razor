@@ -40,16 +40,16 @@
             {
                 <tr>
                     <td>
-                        <Display For="() => item.LastName" />
+                        @item.LastName
                     </td>
                     <td>
-                        <Display For="() => item.FirstMidName" />
+                        @item.FirstMidName
                     </td>
                     <td>
-                        <Display For="() => item.EnrollmentDate" />
+                        @item.EnrollmentDate
                     </td>
                     <td>
-                        <Display For="() => item.EnrollmentsCount" />
+                        @item.EnrollmentsCount
                     </td>
                     <td>
                         <a href="/students/edit/@item.Id">Edit</a> |

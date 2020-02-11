@@ -10,25 +10,25 @@
         <hr />
         <dl class="dl-horizontal">
             <dt>
-                <DisplayLabel For="() => Data.LastName" />
+                <Label For="() => Data.LastName" />
             </dt>
             <dd>
-                <Display For="() => Data.LastName" />
+                @Data.LastName
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.FirstMidName" />
+                <Label For="() => Data.FirstMidName" />
             </dt>
             <dd>
-                <Display For="() => Data.FirstMidName" />
+                @Data.FirstMidName
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.EnrollmentDate" />
+                <Label For="() => Data.EnrollmentDate" />
             </dt>
             <dd>
-                <Display For="() => Data.EnrollmentDate" />
+                @Data.EnrollmentDate
             </dd>
             <dt>
-                <display-label-tag for="Data.Enrollments" />
+                <Label For="() => Data.Enrollments" />
             </dt>
             <dd>
                 <table class="table">
@@ -41,10 +41,10 @@
                         var item = Data.Enrollments[i];
                         <tr>
                             <td>
-                                <Display For="() => item.CourseTitle" />
+                                @item.CourseTitle
                             </td>
                             <td>
-                                <Display For="() => item.Grade" />
+                                @item.Grade
                             </td>
                         </tr>
                     }

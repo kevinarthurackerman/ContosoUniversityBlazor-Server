@@ -12,21 +12,31 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="post">
-                <FormValidationSummary />
-                <InputNumber @bind-Value="Data.Id" />
-
-                <div class="form-group">
-                    <DisplayLabel For="() => Data.Id" />
-                    <div><Display For="() => Data.Id" /></div>
-                </div>
-
-                <FormBlock For="() => Data.Title" />
-                <FormBlock For="() => Data.Credits" />
-                <FormBlock For="() => Data.Department" />
-
-                <div class="form-group">
+                <ValidationSummary />
+                <FormBlock>
+                    <Label For="() => Data.Id" />
+                    <InputNumber @bind-Value="Data.Id" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Title" />
+                    <InputText @bind-Value="Data.Title" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Credits" />
+                    <InputNumber @bind-Value="Data.Credits" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.DepartmentId" />
+                    <InputSelect @bind-Value="Data.DepartmentId">
+                        @foreach (var department in Data.Departments)
+                        {
+                            <option value="@department.Id">@department.Name</option>
+                        }
+                    </InputSelect>
+                </FormBlock>
+                <FormBlock>
                     <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
-                </div>
+                </FormBlock>
             </EditForm>
         </div>
     </div>
@@ -76,11 +86,17 @@
             _configuration = configuration;
         }
 
-        public Task<Command> Handle(Query message, CancellationToken token) =>
-            _db.Courses
+        public async Task<Command> Handle(Query message, CancellationToken token)
+        {
+            var command = await _db.Courses
                 .Where(c => c.Id == message.Id)
                 .ProjectTo<Command>(_configuration)
                 .SingleOrDefaultAsync(token);
+
+            command.Departments = await _db.Departments.ToArrayAsync();
+
+            return command;
+        }
     }
 
     public class Command : IRequest
@@ -89,7 +105,10 @@
         public int Id { get; set; }
         public string Title { get; set; }
         public int? Credits { get; set; }
-        public Department Department { get; set; }
+        [DisplayName("Department")]
+        public int DepartmentId { get; set; }
+
+        public IEnumerable<Department> Departments { get; set; }
     }
 
     public class MappingProfile : Profile

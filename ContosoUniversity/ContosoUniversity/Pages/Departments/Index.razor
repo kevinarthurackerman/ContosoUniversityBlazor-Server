@@ -23,16 +23,16 @@
             {
                 <tr>
                     <td>
-                        <Display For="() => item.Name" />
+                        @item.Name
                     </td>
                     <td>
-                        <Display For="() => item.Budget" />
+                        @item.Budget
                     </td>
                     <td>
-                        <Display For="() => item.StartDate" />
+                        @item.StartDate
                     </td>
                     <td>
-                        <Display For="() => item.AdministratorFullName" />
+                        @item.AdministratorFullName
                     </td>
                     <td>
                         <a href="/departments/edit/@item.Id">Edit</a> |

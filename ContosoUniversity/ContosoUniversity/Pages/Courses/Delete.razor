@@ -13,33 +13,33 @@
         <hr />
         <dl class="dl-horizontal">
             <dt>
-                <DisplayLabel For="() => Data.Id" />
+                <Label For="() => Data.Id" />
             </dt>
             <dd>
-                <Display For="() => Data.Id" />
+                @Data.Id
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.Title" />
+                <Label For="() => Data.Title" />
             </dt>
             <dd>
-                <Display For="() => Data.Title" />
+                @Data.Title
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.Credits" />
+                <Label For="() => Data.Credits" />
             </dt>
             <dd>
-                <Display For="() => Data.Credits" />
+                @Data.Credits
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.DepartmentName" />
+                <Label For="() => Data.DepartmentName" />
             </dt>
             <dd>
-                <Display For="() => Data.DepartmentName" />
+                @Data.DepartmentName
             </dd>
         </dl>
 
         <EditForm Model="@Data" method="post">
-            <input-tag for="Data.Id" />
+            <InputNumber @bind-Value="Data.Id" hidden="hidden" />
             <input type="submit" value="Delete" class="btn btn-danger" @onclick="OnPostAsync" /> |
             <a href="/courses">Back to List</a>
         </EditForm>

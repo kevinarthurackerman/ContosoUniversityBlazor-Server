@@ -12,14 +12,31 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="Data" method="post">
-                <FormValidationSummary/>
-                <FormBlock For="() => Data.Number" />
-                <FormBlock For="() => Data.Title" />
-                <FormBlock For="() => Data.Credits" />
-                <FormBlock For="() => Data.Department" />
-                <div class="form-group">
+                <ValidationSummary />
+                <FormBlock>
+                    <Label For="() => Data.Number" />
+                    <InputNumber @bind-Value="Data.Number" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Title" />
+                    <InputText @bind-Value="Data.Title" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Credits" />
+                    <InputNumber @bind-Value="Data.Credits" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.DepartmentId" />
+                    <InputSelect @bind-Value="Data.DepartmentId">
+                        @foreach (var department in Data.Departments)
+                        {
+                            <option value="@department.Id">@department.Name</option>
+                        }
+                    </InputSelect>
+                </FormBlock>
+                <FormBlock>
                     <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
-                </div>
+                </FormBlock>
             </EditForm>
         </div>
     </div>
@@ -32,6 +49,27 @@
 
 @code {
     public Command Data { get; set; }
+
+    protected override async Task OnInitializedAsync() => Data = await _mediator.Send(new Query());
+
+    public class Query : IRequest<Command> { }
+
+    public class QueryHandler : IRequestHandler<Query, Command>
+    {
+        private readonly SchoolContext _db;
+
+        public QueryHandler(SchoolContext db)
+        {
+            _db = db;
+        }
+
+        public async Task<Command> Handle(Query message, CancellationToken token)
+        {
+            var departments = await _db.Departments.ToArrayAsync();
+
+            return new Command { Departments = departments };
+        }
+    }
 
     private async Task OnPostAsync()
     {
@@ -46,7 +84,10 @@
         public int Number { get; set; }
         public string Title { get; set; }
         public int Credits { get; set; }
-        public Department Department { get; set; }
+        [DisplayName("Department")]
+        public int DepartmentId { get; set; }
+
+        public IEnumerable<Department> Departments { get; set; }
     }
 
     public class MappingProfile : Profile
@@ -57,12 +98,12 @@
     }
 
 
-    public class Handler : IRequestHandler<Command, int>
+    public class CommandHandler : IRequestHandler<Command, int>
     {
         private readonly SchoolContext _db;
         private readonly IMapper _mapper;
 
-        public Handler(SchoolContext db, IMapper mapper)
+        public CommandHandler(SchoolContext db, IMapper mapper)
         {
             _db = db;
             _mapper = mapper;

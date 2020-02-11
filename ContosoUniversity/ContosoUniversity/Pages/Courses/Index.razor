@@ -31,16 +31,16 @@
             {
                 <tr>
                     <td>
-                        <Display For="() => item.Id" />
+                        @item.Id
                     </td>
                     <td>
-                        <Display For="() => item.Title" />
+                        @item.Title
                     </td>
                     <td>
-                        <Display For="() => item.Credits" />
+                        @item.Credits
                     </td>
                     <td>
-                        <Display For="() => item.DepartmentName" />
+                        @item.DepartmentName
                     </td>
                     <td>
                         <a href="/courses/edit/@item.Id">Edit</a> |

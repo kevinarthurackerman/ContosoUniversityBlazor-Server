@@ -12,10 +12,19 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="post">
-                <FormValidationSummary />
-                <FormBlock For="() => Data.LastName" />
-                <FormBlock For="() => Data.FirstMidName" />
-                <FormBlock For="() => Data.EnrollmentDate" />
+                <ValidationSummary />
+                <FormBlock>
+                    <Label For="() => Data.LastName" />
+                    <InputText @bind-Value="Data.LastName" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.FirstMidName" />
+                    <InputText @bind-Value="Data.FirstMidName" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.EnrollmentDate" />
+                    <InputDate @bind-Value="Data.EnrollmentDate" />
+                </FormBlock>
                 <div class="form-group">
                     <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
                 </div>

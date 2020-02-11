@@ -12,18 +12,33 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="POST">
-                <FormValidationSummary />
+                <ValidationSummary />
                 <InputNumber @bind-Value="Data.Id" />
-                <InputBase @bind="Data.RowVersion" />
-
-                <FormBlock For="() => Data.Name" />
-                <FormBlock For="() => Data.Budget" />
-                <FormBlock For="() => Data.StartDate" />
-                <FormBlock For="() => Data.Administrator" />
-
-                <div class="form-group">
+                <input value="@Convert.ToBase64String(Data.RowVersion)" hidden="hidden" />
+                <FormBlock>
+                    <Label For="() => Data.Name" />
+                    <InputText @bind-Value="Data.Name" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Budget" />
+                    <InputNumber @bind-Value="Data.Budget" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.StartDate" />
+                    <InputDate @bind-Value="Data.StartDate" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.AdministratorId" />
+                    <InputSelect @bind-Value="Data.AdministratorId">
+                        @foreach (var administrator in Data.Administrators)
+                        {
+                            <option value="@administrator.Id">@administrator.FullName</option>
+                        }
+                    </InputSelect>
+                </FormBlock>
+                <FormBlock>
                     <input type="submit" value="Save" class="btn btn-primary" @onclick="async () => await OnPostAsync(Data.Id)" />
-                </div>
+                </FormBlock>
             </EditForm>
         </div>
     </div>
@@ -62,9 +77,11 @@
 
         public DateTime? StartDate { get; set; }
 
-        public Instructor Administrator { get; set; }
+        public int? AdministratorId { get; set; }
         public int Id { get; set; }
         public byte[] RowVersion { get; set; }
+
+        public IEnumerable<Instructor> Administrators { get; set; }
     }
 
     public class Validator : AbstractValidator<Command>
@@ -74,7 +91,7 @@
             RuleFor(m => m.Name).NotNull().Length(3, 50);
             RuleFor(m => m.Budget).NotNull();
             RuleFor(m => m.StartDate).NotNull();
-            RuleFor(m => m.Administrator).NotNull();
+            RuleFor(m => m.AdministratorId).NotNull();
         }
     }
 
@@ -95,37 +112,40 @@
             _configuration = configuration;
         }
 
-        public async Task<Command> Handle(Query message,
-            CancellationToken token) => await _db
-            .Departments
-            .Where(d => d.Id == message.Id)
-            .ProjectTo<Command>(_configuration)
-            .SingleOrDefaultAsync(token);
-    }
-
-    public class CommandHandler : IRequestHandler<Command>
-    {
-        private readonly SchoolContext _db;
-        private readonly IMapper _mapper;
-
-        public CommandHandler(SchoolContext db, IMapper mapper)
+        public async Task<Command> Handle(Query message, CancellationToken token)
         {
-            _db = db;
-            _mapper = mapper;
+            var command = await _db
+                .Departments
+                .Where(d => d.Id == message.Id)
+                .ProjectTo<Command>(_configuration)
+                .SingleOrDefaultAsync(token);
+
+            command.Administrators = await _db.Instructors.ToArrayAsync();
+
+            return command;
         }
 
-        public async Task<Unit> Handle(Command message,
-            CancellationToken token)
+        public class CommandHandler : IRequestHandler<Command>
         {
-            var dept =
-                await _db.Departments.FindAsync(message.Id);
+            private readonly SchoolContext _db;
+            private readonly IMapper _mapper;
 
-            message.Administrator =
-                await _db.Instructors.FindAsync(message.Administrator.Id);
+            public CommandHandler(SchoolContext db, IMapper mapper)
+            {
+                _db = db;
+                _mapper = mapper;
+            }
 
-            _mapper.Map(message, dept);
+            public async Task<Unit> Handle(Command message,
+                CancellationToken token)
+            {
+                var dept =
+                    await _db.Departments.FindAsync(message.Id);
 
-            return default;
+                _mapper.Map(message, dept);
+
+                return default;
+            }
         }
     }
 }

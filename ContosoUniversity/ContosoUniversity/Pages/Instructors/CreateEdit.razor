@@ -13,12 +13,24 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="post">
-                <FormValidationSummary />
-                <FormHidden For="() => Data.Id" />
-                <FormBlock For="() => Data.LastName" />
-                <FormBlock For="() => Data.FirstMidName" />
-                <FormBlock For="() => Data.HireDate" />
-                <FormBlock For="() => Data.OfficeAssignmentLocation" />
+                <ValidationSummary />
+                <InputNumber @bind-Value="Data.Id" hidden="hidden" />
+                <FormBlock>
+                    <Label For="() => Data.LastName" />
+                    <InputText @bind-Value="Data.LastName" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.FirstMidName" />
+                    <InputText @bind-Value="Data.FirstMidName" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.HireDate" />
+                    <InputDate @bind-Value="Data.HireDate" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.OfficeAssignmentLocation" />
+                    <InputText @bind-Value="Data.OfficeAssignmentLocation" />
+                </FormBlock>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
                         <table>
@@ -34,9 +46,9 @@
                                         <td>
                                             <label style="font-weight: normal">
                                                 <input type="checkbox"
-                                                        name="data.selectedCourses"
-                                                        value="@course.CourseId"
-                                                        @(course.Assigned ? "checked=\" checked\"" : "" ) />
+                                                       name="data.selectedCourses"
+                                                       value="@course.CourseId"
+                                                       @(course.Assigned ? "checked=\" checked\"" : "" ) />
                                                 @course.CourseId :  @course.Title
                                             </label>
                                         </td>
@@ -46,9 +58,9 @@
                         </table>
                     </div>
                 </div>
-                <div class="form-group">
+                <FormBlock>
                     <input type="submit" value="Save" class="btn btn-primary" />
-                </div>
+                </FormBlock>
             </EditForm>
         </div>
     </div>

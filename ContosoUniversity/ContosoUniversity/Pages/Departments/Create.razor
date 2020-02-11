@@ -12,14 +12,31 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="post">
-                <FormValidationSummary />
-                <FormBlock For="() => Data.Name" />
-                <FormBlock For="() => Data.Budget" />
-                <FormBlock For="() => Data.StartDate" />
-                <FormBlock For="() => Data.Administrator" />
-                <div class="form-group">
+                <ValidationSummary />
+                <FormBlock>
+                    <Label For="() => Data.Name" />
+                    <InputText @bind-Value="Data.Name" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.Budget" />
+                    <InputNumber @bind-Value="Data.Budget" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.StartDate" />
+                    <InputDate @bind-Value="Data.StartDate" />
+                </FormBlock>
+                <FormBlock>
+                    <Label For="() => Data.AdministratorId" />
+                    <InputSelect @bind-Value="Data.AdministratorId">
+                        @foreach (var administrator in Data.Administrators)
+                        {
+                            <option value="@administrator.Id">@administrator.FullName</option>
+                        }
+                    </InputSelect>
+                </FormBlock>
+                <FormBlock>
                     <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
-                </div>
+                </FormBlock>
             </EditForm>
         </div>
     </div>
@@ -40,6 +57,29 @@
         _navigationManager.NavigateTo("/departments");
     }
 
+    protected override async Task OnInitializedAsync() => Data = await _mediator.Send(new Query());
+
+    public class Query : IRequest<Command> { }
+
+    public class QueryHandler : IRequestHandler<Query, Command>
+    {
+        private readonly SchoolContext _db;
+        private readonly IMapper _mapper;
+
+        public QueryHandler(SchoolContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        public async Task<Command> Handle(Query message, CancellationToken token)
+        {
+            var administrators = await _db.Instructors.ToArrayAsync();
+
+            return new Command { Administrators = administrators };
+        }
+    }
+
     public class Validator : AbstractValidator<Command>
     {
         public Validator()
@@ -47,7 +87,7 @@
             RuleFor(m => m.Name).NotNull().Length(3, 50);
             RuleFor(m => m.Budget).NotNull();
             RuleFor(m => m.StartDate).NotNull();
-            RuleFor(m => m.Administrator).NotNull();
+            RuleFor(m => m.AdministratorId).NotNull();
         }
     }
 
@@ -68,7 +108,10 @@
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? StartDate { get; set; }
 
-        public Instructor Administrator { get; set; }
+        [DisplayName("Administrator")]
+        public int? AdministratorId { get; set; }
+
+        public IEnumerable<Instructor> Administrators { get; set; }
     }
 
     public class CommandHandler : IRequestHandler<Command, int>

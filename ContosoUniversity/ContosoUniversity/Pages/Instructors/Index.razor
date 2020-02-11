@@ -29,16 +29,16 @@
                 }
                 <tr class="@selectedRow">
                     <td>
-                        <Display For="() => item.LastName" />
+                        @item.LastName
                     </td>
                     <td>
-                        <Display For="() => item.FirstMidName" />
+                        @item.FirstMidName
                     </td>
                     <td>
-                        <Display For="() => item.HireDate" />
+                        @item.HireDate
                     </td>
                     <td>
-                        <Display For="() => item.OfficeAssignmentLocation" />
+                        @item.OfficeAssignmentLocation
                     </td>
                     <td>
                         @{
@@ -112,7 +112,7 @@
                         @item.StudentFullName
                     </td>
                     <td>
-                        <Display For="() => item.Grade" />
+                        @item.Grade
                     </td>
                 </tr>
             }

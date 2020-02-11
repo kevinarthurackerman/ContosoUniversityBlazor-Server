@@ -13,27 +13,27 @@
         <hr />
         <dl class="dl-horizontal">
             <dt>
-                <DisplayLabel For="() => Data.LastName" />
+                <Label For="() => Data.LastName" />
             </dt>
             <dd>
-                <Display For="() => Data.LastName" />
+                @Data.LastName
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.FirstMidName" />
+                <Label For="() => Data.FirstMidName" />
             </dt>
             <dd>
-                <Display For="() => Data.FirstMidName" />
+                @Data.FirstMidName
             </dd>
             <dt>
-                <DisplayLabel For="() => Data.HireDate" />
+                <Label For="() => Data.HireDate" />
             </dt>
             <dd>
-                <Display For="() => Data.HireDate" />
+                @Data.HireDate
             </dd>
         </dl>
 
         <EditForm Model="@Data" method="post">
-            <InputNumber @bind-Value="Data.Id" />
+            <InputNumber @bind-Value="Data.Id" hidden="hidden" />
             <input type="submit" value="Delete" class="btn btn-danger" @onclick="OnPostAsync" /> |
             <a href="/instructors">Back to List</a>
         </EditForm>
