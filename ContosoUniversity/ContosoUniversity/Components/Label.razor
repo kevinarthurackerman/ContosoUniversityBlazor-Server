@@ -1,7 +1,10 @@
-﻿<label>@label</label>
+﻿<label @attributes="InputAttributes">@label</label>
 
 @code {
     [Parameter] public Expression<Func<object>> For { get; set; }
+
+    [Parameter]
+    public Dictionary<string, object> InputAttributes { get; set; }
 
     private string label => GetDisplayName();
 
