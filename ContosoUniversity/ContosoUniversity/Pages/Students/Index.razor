@@ -1,5 +1,6 @@
 ﻿@page "/students"
 @inject IMediator _mediator
+@inject NavigationManager _navigationManager;
 
 <h2>Index</h2>
 
@@ -80,37 +81,76 @@
 
     public Result _data;
 
-    protected override Task OnInitializedAsync() => Search(null, null, null);
+    protected override Task OnInitializedAsync()
+    {
+        var queryParams = GetQueryParams();
+        if(queryParams.TryGetValue("sortOrder", out var sortOrder)) _currentSortOrder = sortOrder.FirstOrDefault();
+        if(queryParams.TryGetValue("searchString", out var searchString)) _currentSearchString = searchString.FirstOrDefault();
+        queryParams.TryGetValue("page", out var page);
+        var pageParam = int.TryParse(page.FirstOrDefault(), out var parsedPage) ? (int?)parsedPage : null;
 
-    private Task SearchButtonClicked() => Search(_currentSortOrder, _currentSearchString, null);
+        return Search(sortOrder.FirstOrDefault(), searchString.FirstOrDefault(), pageParam);
+
+        IDictionary<string,StringValues> GetQueryParams()
+        {
+            var uri = new Uri(_navigationManager.Uri);
+            return QueryHelpers.ParseNullableQuery(uri.Query) ?? new Dictionary<string, StringValues>();
+        }
+    }
+
+    private Task SearchButtonClicked() => SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, null);
 
     private Task NameHeaderClicked()
     {
         _currentSortOrder = _currentSortOrder == "name" ? "name_desc" : "name";
-        return Search(_currentSortOrder, _currentSearchString, _data?.Results.PageIndex);
+        return SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data?.Results.PageIndex);
     }
 
     private Task DateHeaderClicked()
     {
         _currentSortOrder = _currentSortOrder == "date" ? "date_desc" : "date";
-        return Search(_currentSortOrder, _currentSearchString, _data.Results.PageIndex);
+        return SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex);
     }
 
     private Task PreviousClicked() =>
-        Search(_currentSortOrder, _currentSearchString, _data.Results.PageIndex - 1);
+        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex - 1);
 
     private Task NextClicked() =>
-        Search(_currentSortOrder, _currentSearchString, _data.Results.PageIndex + 1);
+        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex + 1);
 
     private async Task BackToFullListClicked()
     {
         _currentSortOrder = null;
         _currentSearchString = null;
-        await Search(_currentSortOrder, _currentSearchString, null);
+        await SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, null);
     }
 
-    private async Task Search(string sortOrder, string searchString, int? page) =>
+    private async Task Search(string sortOrder, string searchString, int? page)
+    {
         _data = await _mediator.Send(new Query { SortOrder = _currentSortOrder, SearchString = _currentSearchString, Page = page });
+    }
+
+    private void UpdateUrl(string sortOrder, string searchString, int? page)
+    {
+        var queryParams = new (string ParamName, string Value)[]
+            {
+                ("sortOrder", sortOrder),
+                ("searchString", searchString),
+                ("page", page?.ToString())
+            }
+            .Where(x => x.Value != null)
+            .ToDictionary(x => x.ParamName, x => x.Value);
+
+        var uri = new Uri(_navigationManager.Uri).AbsolutePath;
+
+        _navigationManager.NavigateTo(QueryHelpers.AddQueryString(uri, queryParams));
+    }
+
+    private Task SearchAndUpdateUrl(string sortOrder, string searchString, int? page)
+    {
+        UpdateUrl(sortOrder, searchString, page);
+        return Search(sortOrder, searchString, page);
+    }
 
     public class Query : IRequest<Result>
     {
