@@ -9,6 +9,7 @@ using MediatR;
 using ContosoUniversity.Infrastructure;
 using FluentValidation.AspNetCore;
 using AutoMapper;
+using ContosoUniversity.Validation;
 
 namespace ContosoUniversity
 {
@@ -35,6 +36,8 @@ namespace ContosoUniversity
             services.AddScoped(
                 typeof(IPipelineBehavior<,>),
                 typeof(LoggingBehavior<,>));
+
+            services.AddSingleton<ValidatorLocator>();
 
             services.AddRazorPages(opt =>
                 {
