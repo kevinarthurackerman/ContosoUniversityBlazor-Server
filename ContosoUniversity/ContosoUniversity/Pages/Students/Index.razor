@@ -1,42 +1,41 @@
 ﻿@page "/students"
 @inject IMediator _mediator
+@inject NavigationManager _navigationManager;
 
-    <h2>Index</h2>
+<h2>Index</h2>
 
-<Loading When="Data == null">
+<Loading When="_data == null">
 
     <p>
         <a href="/students/create">Create New</a>
     </p>
 
-    <EditForm Model="@Data" method="get">
-        <div class="form-actions no-color">
-            <p>
-                Find by name: <input type="text" name="SearchString" value="@Data.CurrentFilter" />
-                <input type="submit" value="Search" class="btn btn-primary" /> |
-                <a href="/students">Back to Full List</a>
-            </p>
-        </div>
-    </EditForm>
+    <div class="form-actions no-color">
+        <p>
+            Find by name: <input type="text" name="SearchString" @bind="_currentSearchString" />
+            <button class="btn btn-primary" @onclick="SearchButtonClicked" >Search</button> |
+            <a href="" @onclick="BackToFullListClicked">Back to Full List</a>
+        </p>
+    </div>
 
     <table class="table">
         <thead>
             <tr>
                 <th>
-                    <a href="/students?sortOrder=@Data.NameSortParm&currentFilter=@Data.CurrentFilter">Last Name</a>
+                    <a href="" @onclick="NameHeaderClicked">Last Name</a>
                 </th>
                 <th>
                     First Name
                 </th>
                 <th>
-                    <a href="/students?sortOrder=@Data.DateSortParm&currentFilter=@Data.CurrentFilter">Enrollment Date</a>
+                    <a href="" @onclick="DateHeaderClicked">Enrollment Date</a>
                 </th>
                 <th>Enrollments Count</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Data.Results)
+            @foreach (var item in _data.Results)
             {
                 <tr>
                     <td>
@@ -46,7 +45,7 @@
                         @item.FirstMidName
                     </td>
                     <td>
-                        @item.EnrollmentDate
+                        @item.EnrollmentDate.ToString("d")
                     </td>
                     <td>
                         @item.EnrollmentsCount
@@ -62,55 +61,106 @@
     </table>
 
     @{
-        var prevDisabled = !Data.Results.HasPreviousPage ? "disabled" : "";
-        var nextDisabled = !Data.Results.HasNextPage ? "disabled" : "";
+        var prevDisabled = !_data?.Results.HasPreviousPage ?? false ? "disabled" : "";
+        var nextDisabled = !_data?.Results.HasNextPage ?? false ? "disabled" : "";
     }
 
-    <a href="/students?sortOrder=@Data.CurrentSort&pageindex=@(Data.Results.PageIndex - 1)&currentFilter=@Data.CurrentFilter"
-        class="btn btn-primary @prevDisabled">
+    <a href="" class="btn btn-primary @prevDisabled" @onclick="PreviousClicked">
         Previous
     </a>
-    <a href="/students?sortOrder=@Data.CurrentSort&pageindex=@(Data.Results.PageIndex + 1)&currentFilter=@Data.CurrentFilter"
-        class="btn btn-primary @nextDisabled">
+    <a href="" class="btn btn-primary @nextDisabled" @onclick="NextClicked">
         Next
     </a>
 
 </Loading>
 
 @code {
-    [Parameter]
-    public string SortOrder { get; set; }
+    private string _currentSortOrder;
 
-    [Parameter]
-    public string CurrentFilter { get; set; }
+    private string _currentSearchString;
 
-    [Parameter]
-    public string SearchString { get; set; }
+    public Result _data;
 
-    [Parameter]
-    public int? Page { get; set; }
+    protected override Task OnInitializedAsync()
+    {
+        var queryParams = GetQueryParams();
+        if(queryParams.TryGetValue("sortOrder", out var sortOrder)) _currentSortOrder = sortOrder.FirstOrDefault();
+        if(queryParams.TryGetValue("searchString", out var searchString)) _currentSearchString = searchString.FirstOrDefault();
+        queryParams.TryGetValue("page", out var page);
+        var pageParam = int.TryParse(page.FirstOrDefault(), out var parsedPage) ? (int?)parsedPage : null;
 
-    public Result Data { get; private set; }
+        return Search(sortOrder.FirstOrDefault(), searchString.FirstOrDefault(), pageParam);
 
-    protected override async Task OnInitializedAsync()
-        => Data = await _mediator.Send(new Query { CurrentFilter = CurrentFilter, Page = Page, SearchString = SearchString, SortOrder = SortOrder });
+        IDictionary<string,StringValues> GetQueryParams()
+        {
+            var uri = new Uri(_navigationManager.Uri);
+            return QueryHelpers.ParseNullableQuery(uri.Query) ?? new Dictionary<string, StringValues>();
+        }
+    }
+
+    private Task SearchButtonClicked() => SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, null);
+
+    private Task NameHeaderClicked()
+    {
+        _currentSortOrder = _currentSortOrder == "name" ? "name_desc" : "name";
+        return SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data?.Results.PageIndex);
+    }
+
+    private Task DateHeaderClicked()
+    {
+        _currentSortOrder = _currentSortOrder == "date" ? "date_desc" : "date";
+        return SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex);
+    }
+
+    private Task PreviousClicked() =>
+        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex - 1);
+
+    private Task NextClicked() =>
+        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex + 1);
+
+    private async Task BackToFullListClicked()
+    {
+        _currentSortOrder = null;
+        _currentSearchString = null;
+        await SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, null);
+    }
+
+    private async Task Search(string sortOrder, string searchString, int? page)
+    {
+        _data = await _mediator.Send(new Query { SortOrder = _currentSortOrder, SearchString = _currentSearchString, Page = page });
+    }
+
+    private void UpdateUrl(string sortOrder, string searchString, int? page)
+    {
+        var queryParams = new (string ParamName, string Value)[]
+            {
+                ("sortOrder", sortOrder),
+                ("searchString", searchString),
+                ("page", page?.ToString())
+            }
+            .Where(x => x.Value != null)
+            .ToDictionary(x => x.ParamName, x => x.Value);
+
+        var uri = new Uri(_navigationManager.Uri).AbsolutePath;
+
+        _navigationManager.NavigateTo(QueryHelpers.AddQueryString(uri, queryParams));
+    }
+
+    private Task SearchAndUpdateUrl(string sortOrder, string searchString, int? page)
+    {
+        UpdateUrl(sortOrder, searchString, page);
+        return Search(sortOrder, searchString, page);
+    }
 
     public class Query : IRequest<Result>
     {
         public string SortOrder { get; set; }
-        public string CurrentFilter { get; set; }
         public string SearchString { get; set; }
         public int? Page { get; set; }
     }
 
     public class Result
     {
-        public string CurrentSort { get; set; }
-        public string NameSortParm { get; set; }
-        public string DateSortParm { get; set; }
-        public string CurrentFilter { get; set; }
-        public string SearchString { get; set; }
-
         public PaginatedList<Model> Results { get; set; }
     }
 
@@ -133,6 +183,7 @@
     {
         private readonly SchoolContext _db;
         private readonly IConfigurationProvider _configuration;
+        private const int _pageSize = 3;
 
         public QueryHandler(SchoolContext db, IConfigurationProvider configuration)
         {
@@ -142,37 +193,19 @@
 
         public async Task<Result> Handle(Query message, CancellationToken token)
         {
-            var model = new Result
-            {
-                CurrentSort = message.SortOrder,
-                NameSortParm = String.IsNullOrEmpty(message.SortOrder) ? "name_desc" : "",
-                DateSortParm = message.SortOrder == "Date" ? "date_desc" : "Date"
-            };
-
-            if (message.SearchString != null)
-            {
-                message.Page = 1;
-            }
-            else
-            {
-                message.SearchString = message.CurrentFilter;
-            }
-
-            model.CurrentFilter = message.SearchString;
-            model.SearchString = message.SearchString;
-
             IQueryable<Student> students = _db.Students;
+
             if (!String.IsNullOrEmpty(message.SearchString))
             {
-                students = students.Where(s => s.LastName.Contains(message.SearchString)
-                                               || s.FirstMidName.Contains(message.SearchString));
+                students = students.Where(s => s.LastName.Contains(message.SearchString) || s.FirstMidName.Contains(message.SearchString));
             }
+
             switch (message.SortOrder)
             {
                 case "name_desc":
                     students = students.OrderByDescending(s => s.LastName);
                     break;
-                case "Date":
+                case "date":
                     students = students.OrderBy(s => s.EnrollmentDate);
                     break;
                 case "date_desc":
@@ -183,8 +216,9 @@
                     break;
             }
 
-            int pageSize = 3;
             int pageNumber = message.Page ?? 1;
+
+            var model = new Result();
             model.Results = await students
                 //.Select(src => new Model
                 //{
@@ -195,7 +229,7 @@
                 //    EnrollmentDate = src.EnrollmentDate
                 //})
                 .ProjectTo<Model>(_configuration)
-                .PaginatedListAsync(pageNumber, pageSize);
+                .PaginatedListAsync(pageNumber, _pageSize);
 
             return model;
         }
