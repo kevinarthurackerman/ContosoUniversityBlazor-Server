@@ -1,12 +1,17 @@
-﻿<label @attributes="InputAttributes">@label</label>
+﻿@using System.Text.RegularExpressions
+
+<label @attributes="InputAttributes">@_label</label>
 
 @code {
-    [Parameter] public Expression<Func<object>> For { get; set; }
+    [Parameter]
+    public Expression<Func<object>> For { get; set; }
 
     [Parameter]
     public Dictionary<string, object> InputAttributes { get; set; }
 
-    private string label => GetDisplayName();
+    private static Regex _titleCaseToSentenceCaseRegex = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
+
+    private string _label => GetDisplayName();
 
     private string GetDisplayName()
     {
@@ -17,7 +22,14 @@
             forMember = unaryMemberExpression;
         else throw new InvalidOperationException("Must be an expression terminating in a member");
 
-        var value = forMember.Member.GetCustomAttribute(typeof(DisplayNameAttribute)) as DisplayNameAttribute;
-        return value?.DisplayName ?? forMember.Member.Name;
+        var displayNameAttribute = forMember.Member.GetCustomAttribute(typeof(DisplayNameAttribute)) as DisplayNameAttribute;
+
+        if (displayNameAttribute != null) return displayNameAttribute.DisplayName;
+
+        var displayAttribute = forMember.Member.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
+
+        if (displayAttribute?.Name != null) return displayAttribute.Name;
+
+        return _titleCaseToSentenceCaseRegex.Replace(forMember.Member.Name, " ");
     }
 }
