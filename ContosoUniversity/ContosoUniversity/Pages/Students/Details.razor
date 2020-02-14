@@ -111,6 +111,7 @@
 
         public Task<Model> Handle(Query message, CancellationToken token) => _db
                 .Students
+                .Include(x => x.Enrollments)
                 .Where(s => s.Id == message.Id)
                 .ProjectTo<Model>(_configuration)
                 .SingleOrDefaultAsync(token);
