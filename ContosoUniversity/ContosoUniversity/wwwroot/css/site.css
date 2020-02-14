@@ -14,6 +14,14 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+.form-group > label {
+    width: 100%;
+}
+
+label {
+    font-weight: bold;
+}
+
 app {
     position: relative;
     display: flex;
