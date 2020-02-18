@@ -1,10 +1,9 @@
-﻿using FluentValidation;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace ContosoUniversity.Validation
+namespace FluentValidation
 {
     public class ValidatorLocator
     {

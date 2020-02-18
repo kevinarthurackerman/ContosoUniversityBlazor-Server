@@ -9,7 +9,7 @@ using MediatR;
 using ContosoUniversity.Infrastructure;
 using FluentValidation.AspNetCore;
 using AutoMapper;
-using ContosoUniversity.Validation;
+using FluentValidation;
 
 namespace ContosoUniversity
 {

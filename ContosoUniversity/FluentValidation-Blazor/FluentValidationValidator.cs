@@ -1,12 +1,11 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
+﻿using FluentValidation.Results;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ContosoUniversity.Validation
+namespace FluentValidation
 {
     public class FluentValidationValidator : ComponentBase
     {
