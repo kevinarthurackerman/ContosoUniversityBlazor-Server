@@ -12,19 +12,22 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" method="post">
-                <ValidationSummary />
+                <FluentValidationValidator />
                 <InputNumber @bind-Value="Data.Id" hidden="hidden"/>
                 <FormBlock>
                     <Label For="() => Data.LastName" />
                     <InputText @bind-Value="Data.LastName" />
+                    <ValidationMessage For="() => Data.LastName" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.FirstMidName" />
                     <InputText @bind-Value="Data.FirstMidName" />
+                    <ValidationMessage For="() => Data.FirstMidName" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.EnrollmentDate" />
                     <InputDate @bind-Value="Data.EnrollmentDate" />
+                    <ValidationMessage For="() => Data.EnrollmentDate" />
                 </FormBlock>
                 <div class="form-group">
                     <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
