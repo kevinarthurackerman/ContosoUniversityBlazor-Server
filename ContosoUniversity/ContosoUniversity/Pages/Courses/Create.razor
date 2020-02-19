@@ -11,19 +11,22 @@
 
     <div class="row">
         <div class="col-md-4">
-            <EditForm Model="Data" method="post">
-                <ValidationSummary />
+            <EditForm Model="Data" OnValidSubmit="OnPostAsync">
+                <FluentValidationValidator />
                 <FormBlock>
                     <Label For="() => Data.Number" />
                     <InputNumber @bind-Value="Data.Number" />
+                    <ValidationMessage For="() => Data.Number" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Title" />
                     <InputText @bind-Value="Data.Title" />
+                    <ValidationMessage For="() => Data.Title" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Credits" />
                     <InputNumber @bind-Value="Data.Credits" />
+                    <ValidationMessage For="() => Data.Credits" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.DepartmentId" />
@@ -33,9 +36,10 @@
                             <option value="@department.Id">@department.Name</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="() => Data.DepartmentId" />
                 </FormBlock>
                 <FormBlock>
-                    <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
+                    <button type="submit" class="btn btn-primary">Create</button>
                 </FormBlock>
             </EditForm>
         </div>
@@ -58,10 +62,7 @@
     {
         private readonly SchoolContext _db;
 
-        public QueryHandler(SchoolContext db)
-        {
-            _db = db;
-        }
+        public QueryHandler(SchoolContext db) => _db = db;
 
         public async Task<Command> Handle(Query message, CancellationToken token)
         {
@@ -80,23 +81,30 @@
 
     public class Command : IRequest<int>
     {
-        [IgnoreMap]
-        public int Number { get; set; }
+        public int? Number { get; set; }
         public string Title { get; set; }
-        public int Credits { get; set; }
+        public int? Credits { get; set; }
         [DisplayName("Department")]
-        public int DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
 
         public IEnumerable<Department> Departments { get; set; }
     }
 
     public class MappingProfile : Profile
     {
-        public MappingProfile() =>
-            CreateMap<Command, Course>(MemberList.Source);
-        //.ForSourceMember(c => c.Number, opt => opt.Ignore());
+        public MappingProfile() => CreateMap<Command, Course>(MemberList.Source);
     }
 
+    public class Validator : AbstractValidator<Command>
+    {
+        public Validator()
+        {
+            RuleFor(m => m.Number).NotNull();
+            RuleFor(m => m.Title).NotNull();
+            RuleFor(m => m.Credits).NotNull();
+            RuleFor(m => m.DepartmentId).NotNull();
+        }
+    }
 
     public class CommandHandler : IRequestHandler<Command, int>
     {
@@ -112,7 +120,7 @@
         public async Task<int> Handle(Command message, CancellationToken token)
         {
             var course = _mapper.Map<Command, Course>(message);
-            course.Id = message.Number;
+            course.Id = message.Number.Value;
 
             _db.Courses.Add(course);
 
