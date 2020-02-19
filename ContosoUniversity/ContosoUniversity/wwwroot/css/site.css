@@ -22,6 +22,11 @@ label {
     font-weight: bold;
 }
 
+input, select {
+    width: 200px;
+    height: 30px;
+}
+
 app {
     position: relative;
     display: flex;
