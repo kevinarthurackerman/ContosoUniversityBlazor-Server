@@ -101,8 +101,14 @@
         public Validator()
         {
             RuleFor(m => m.Number).NotNull();
-            RuleFor(m => m.Title).NotNull();
-            RuleFor(m => m.Credits).NotNull();
+            RuleFor(m => m.Title)
+                .Cascade(CascadeMode.StopOnFirstFailure)
+                .Length(3, 50)
+                .NotNull();
+            RuleFor(m => m.Credits)
+                .Cascade(CascadeMode.StopOnFirstFailure)
+                .NotNull()
+                .InclusiveBetween(0, 5);
             RuleFor(m => m.DepartmentId).NotNull();
         }
     }

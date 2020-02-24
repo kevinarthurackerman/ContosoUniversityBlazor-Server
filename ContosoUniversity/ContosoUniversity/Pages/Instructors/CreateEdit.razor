@@ -154,8 +154,14 @@
     {
         public CommandValidator()
         {
-            RuleFor(m => m.LastName).NotNull().Length(0, 50);
-            RuleFor(m => m.FirstMidName).NotNull().Length(0, 50);
+            RuleFor(m => m.LastName)
+                .Cascade(CascadeMode.StopOnFirstFailure)
+                .NotNull()
+                .Length(0, 50);
+            RuleFor(m => m.FirstMidName)
+                .Cascade(CascadeMode.StopOnFirstFailure)
+                .NotNull()
+                .Length(0, 50);
             RuleFor(m => m.HireDate).NotNull();
         }
     }
