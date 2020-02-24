@@ -37,8 +37,6 @@ namespace ContosoUniversity.Models
             UpdateInstructorCourses(message.Courses);
         }
 
-        public void Handle(Delete.Command message) => OfficeAssignment = null;
-
         private void UpdateDetails(CreateEdit.Command message)
         {
             FirstMidName = message.FirstMidName;

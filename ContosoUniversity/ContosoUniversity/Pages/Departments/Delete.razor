@@ -38,12 +38,10 @@
             </dd>
         </dl>
 
-        <EditForm Model="@Data" method="post">
-            <InputNumber @bind-Value="Data.Id" hidden="hidden" />
-            <input value="@Convert.ToBase64String(Data.RowVersion)" hidden="hidden" />
+        <div>
             <input type="submit" value="Delete" class="btn btn-danger" @onclick="OnPostAsync" /> |
             <a href="/departments">Back to List</a>
-        </EditForm>
+        </div>
     </div>
 
  </Loading>

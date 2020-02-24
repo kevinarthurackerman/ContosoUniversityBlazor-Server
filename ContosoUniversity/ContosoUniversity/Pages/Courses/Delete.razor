@@ -38,11 +38,10 @@
             </dd>
         </dl>
 
-        <EditForm Model="@Data" method="post">
-            <InputNumber @bind-Value="Data.Id" hidden="hidden" />
+        <div>
             <input type="submit" value="Delete" class="btn btn-danger" @onclick="OnPostAsync" /> |
             <a href="/courses">Back to List</a>
-        </EditForm>
+        </div>
     </div>
 
 </Loading>

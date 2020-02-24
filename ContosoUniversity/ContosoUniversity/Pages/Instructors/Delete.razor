@@ -31,12 +31,10 @@
                 @Data.HireDate.ToString("d")
             </dd>
         </dl>
-
-        <EditForm Model="@Data" method="post">
-            <InputNumber @bind-Value="Data.Id" hidden="hidden" />
+        <div>
             <input type="submit" value="Delete" class="btn btn-danger" @onclick="OnPostAsync" /> |
             <a href="/instructors">Back to List</a>
-        </EditForm>
+        </div>
     </div>
 
 </Loading>
@@ -116,22 +114,9 @@
 
         public async Task<Unit> Handle(Command message, CancellationToken token)
         {
-            Instructor instructor = await _db.Instructors
-                .Include(i => i.OfficeAssignment)
-                .Where(i => i.Id == message.Id)
-                .SingleAsync(token);
-
-            instructor.Handle(message);
+            var instructor = await _db.Instructors.FindAsync(message.Id);
 
             _db.Instructors.Remove(instructor);
-
-            var department = await _db.Departments
-                .Where(d => d.InstructorId == message.Id)
-                .SingleOrDefaultAsync(token);
-            if (department != null)
-            {
-                department.InstructorId = null;
-            }
 
             return default;
         }
