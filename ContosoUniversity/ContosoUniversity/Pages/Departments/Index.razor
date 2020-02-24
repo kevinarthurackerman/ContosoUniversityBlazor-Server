@@ -71,7 +71,11 @@
 
     public class MappingProfile : Profile
     {
-        public MappingProfile() => CreateMap<Department, Model>();
+        public MappingProfile() => CreateMap<Department, Model>()
+            .ForMember(
+                dest => dest.AdministratorFullName, 
+                opt => opt.MapFrom(src => src.Instructor.FullName)
+            );
     }
 
     public class QueryHandler : IRequestHandler<Query, List<Model>>
@@ -87,10 +91,10 @@
         }
 
         public Task<List<Model>> Handle(Query message,
-            CancellationToken token) => _context
-            .Departments
-            .ProjectTo<Model>(_configuration)
-            .DecompileAsync()
-            .ToListAsync(token);
+            CancellationToken token) => _context.Departments
+                .Include(x => x.Instructor)
+                .ProjectTo<Model>(_configuration)
+                .DecompileAsync()
+                .ToListAsync(token);
     }
 }

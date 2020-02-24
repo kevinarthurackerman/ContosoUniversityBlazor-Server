@@ -11,31 +11,36 @@
 
     <div class="row">
         <div class="col-md-4">
-            <EditForm Model="@Data" method="post">
-                <ValidationSummary />
+            <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
+                <FluentValidationValidator />
                 <FormBlock>
                     <Label For="() => Data.Name" />
                     <InputText @bind-Value="Data.Name" />
+                    <ValidationMessage For="() => Data.Name" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Budget" />
                     <InputNumber @bind-Value="Data.Budget" />
+                    <ValidationMessage For="() => Data.Budget" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.StartDate" />
                     <InputDate @bind-Value="Data.StartDate" />
+                    <ValidationMessage For="() => Data.StartDate" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.AdministratorId" />
-                    <InputSelect @bind-Value="Data.AdministratorId">
+                    <Label For="() => Data.InstructorId" />
+                    <InputSelectNumber @bind-Value="Data.InstructorId">
+                        <option value=""></option>
                         @foreach (var administrator in Data.Administrators)
                         {
                             <option value="@administrator.Id">@administrator.FullName</option>
                         }
-                    </InputSelect>
+                    </InputSelectNumber>
+                    <ValidationMessage For="() => Data.InstructorId" />
                 </FormBlock>
                 <FormBlock>
-                    <input type="submit" value="Create" class="btn btn-primary" @onclick="OnPostAsync" />
+                    <input type="submit" value="Create" class="btn btn-primary" />
                 </FormBlock>
             </EditForm>
         </div>
@@ -64,17 +69,15 @@
     public class QueryHandler : IRequestHandler<Query, Command>
     {
         private readonly SchoolContext _db;
-        private readonly IMapper _mapper;
 
-        public QueryHandler(SchoolContext db, IMapper mapper)
+        public QueryHandler(SchoolContext db)
         {
             _db = db;
-            _mapper = mapper;
         }
 
         public async Task<Command> Handle(Query message, CancellationToken token)
         {
-            var administrators = await _db.Instructors.ToArrayAsync();
+            var administrators = await _db.Instructors.ToArrayAsync(token);
 
             return new Command { Administrators = administrators };
         }
@@ -87,7 +90,7 @@
             RuleFor(m => m.Name).NotNull().Length(3, 50);
             RuleFor(m => m.Budget).NotNull();
             RuleFor(m => m.StartDate).NotNull();
-            RuleFor(m => m.AdministratorId).NotNull();
+            RuleFor(m => m.InstructorId).NotNull();
         }
     }
 
@@ -109,7 +112,7 @@
         public DateTime? StartDate { get; set; }
 
         [DisplayName("Administrator")]
-        public int? AdministratorId { get; set; }
+        public int? InstructorId { get; set; }
 
         public IEnumerable<Instructor> Administrators { get; set; }
     }
