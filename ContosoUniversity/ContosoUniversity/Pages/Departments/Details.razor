@@ -19,13 +19,13 @@
                 <Label For="() => Data.Budget" />
             </dt>
             <dd>
-                @Data.Budget
+                @Data.Budget.ToString("C")
             </dd>
             <dt>
                 <Label For="() => Data.StartDate" />
             </dt>
             <dd>
-                @Data.StartDate
+                @Data.StartDate.ToString("d")
             </dd>
             <dt>
                 <Label For="() => Data.AdministratorFullName" />
@@ -72,7 +72,11 @@
 
     public class MappingProfile : Profile
     {
-        public MappingProfile() => CreateMap<Department, Model>();
+        public MappingProfile() => CreateMap<Department, Model>()
+            .ForMember(
+                dest => dest.AdministratorFullName, 
+                opt => opt.MapFrom(src => src.Instructor.FullName)
+            );
     }
 
     public class QueryHandler : IRequestHandler<Query, Model>
@@ -86,12 +90,12 @@
             _configuration = configuration;
         }
 
-        public Task<Model> Handle(Query message,
-            CancellationToken token) =>
+        public Task<Model> Handle(Query message, CancellationToken token) =>
             _context.Departments
-            .Where(m => m.Id == message.Id)
-            .ProjectTo<Model>(_configuration)
-            .DecompileAsync()
-            .SingleOrDefaultAsync(token);
+                .Include(x => x.Instructor)
+                .Where(m => m.Id == message.Id)
+                .ProjectTo<Model>(_configuration)
+                .DecompileAsync()
+                .SingleOrDefaultAsync(token);
     }
 }

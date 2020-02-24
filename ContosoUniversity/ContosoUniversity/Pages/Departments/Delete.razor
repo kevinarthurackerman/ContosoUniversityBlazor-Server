@@ -22,13 +22,13 @@
                 <Label For="() => Data.Budget" />
             </dt>
             <dd>
-                @Data.Budget
+                @Data.Budget.ToString("C")
             </dd>
             <dt>
                 <Label For="() => Data.StartDate" />
             </dt>
             <dd>
-                @Data.StartDate
+                @Data.StartDate.ToString("d")
             </dd>
             <dt>
                 <Label For="() => Data.AdministratorFullName" />
@@ -87,7 +87,11 @@
 
     public class MappingProfile : Profile
     {
-        public MappingProfile() => CreateMap<Department, Command>();
+        public MappingProfile() => CreateMap<Department, Command>()
+            .ForMember(
+                dest => dest.AdministratorFullName, 
+                opt => opt.MapFrom(src => src.Instructor.FullName)
+            );
     }
 
     public class QueryHandler : IRequestHandler<Query, Command>
@@ -103,6 +107,7 @@
 
         public async Task<Command> Handle(Query message, CancellationToken token) => await _db
             .Departments
+            .Include(x => x.Instructor)
             .Where(d => d.Id == message.Id)
             .ProjectTo<Command>(_configuration)
             .SingleOrDefaultAsync(token);
