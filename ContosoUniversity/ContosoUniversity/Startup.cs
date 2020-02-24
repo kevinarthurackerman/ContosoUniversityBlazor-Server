@@ -7,7 +7,6 @@ using ContosoUniversity.Data;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using ContosoUniversity.Infrastructure;
-using FluentValidation.AspNetCore;
 using AutoMapper;
 using FluentValidation;
 
@@ -39,11 +38,9 @@ namespace ContosoUniversity
 
             services.AddSingleton<ValidatorLocator>();
 
-            services.AddRazorPages(opt =>
-                {
-                    opt.Conventions.ConfigureFilter(new DbContextTransactionPageFilter());
-                })
-                .AddFluentValidation(cfg => { cfg.RegisterValidatorsFromAssemblyContaining<Startup>(); });
+            services.AddRazorPages();
+
+            services.AddValidatorsFromAssemblyContaining<Startup>();
 
             services.AddServerSideBlazor();
         }

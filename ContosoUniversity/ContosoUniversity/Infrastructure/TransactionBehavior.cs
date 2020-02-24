@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using ContosoUniversity.Data;
 using MediatR;
 
-namespace ContosoUniversity
+namespace ContosoUniversity.Infrastructure
 {
     public class TransactionBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>
