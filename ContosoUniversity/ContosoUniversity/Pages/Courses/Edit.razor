@@ -15,7 +15,7 @@
                 <ValidationSummary />
                 <FormBlock>
                     <Label For="() => Data.Id" />
-                    <InputNumber @bind-Value="Data.Id" />
+                    <InputNumber @bind-Value="Data.Id" disabled/>
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Title" />
@@ -27,12 +27,12 @@
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.DepartmentId" />
-                    <InputSelect @bind-Value="Data.DepartmentId">
+                    <InputSelectNumber @bind-Value="Data.DepartmentId">
                         @foreach (var department in Data.Departments)
                         {
                             <option value="@department.Id">@department.Name</option>
                         }
-                    </InputSelect>
+                    </InputSelectNumber>
                 </FormBlock>
                 <FormBlock>
                     <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
@@ -86,14 +86,14 @@
             _configuration = configuration;
         }
 
-        public async Task<Command> Handle(Query message, CancellationToken token)
+        public async Task<Command> Handle(Query message, CancellationToken cancellationToken)
         {
             var command = await _db.Courses
                 .Where(c => c.Id == message.Id)
                 .ProjectTo<Command>(_configuration)
-                .SingleOrDefaultAsync(token);
+                .SingleOrDefaultAsync(cancellationToken);
 
-            command.Departments = await _db.Departments.ToArrayAsync();
+            command.Departments = await _db.Departments.ToArrayAsync(cancellationToken);
 
             return command;
         }
