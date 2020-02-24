@@ -1,4 +1,6 @@
 ﻿@page "/instructors"
+@page "/instructors/{id:int}"
+@page "/instructors/{id:int}/{courseId:int}"
 @inject IMediator _mediator
 
 <h2>Instructors</h2>
@@ -79,7 +81,7 @@
                 }
                 <tr class="@selectedRow">
                     <td>
-                        <a href="/instructors?id=@Data.InstructorId&courseId=@item.Id">Select</a>
+                        <a href="/instructors/@Data.InstructorId/@item.Id">Select</a>
                     </td>
                     <td>
                         @item.Id
@@ -130,7 +132,7 @@
 
     public Model Data { get; private set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
         => Data = await _mediator.Send(new Query { Id = Id, CourseId = CourseId });
 
     public class Query : IRequest<Model>
@@ -217,14 +219,7 @@
                 .ThenInclude(c => c.Course)
                 .OrderBy(i => i.LastName)
                 .ProjectTo<Model.Instructor>(_configuration)
-                .ToListAsync(token)
-                ;
-
-            // EF Core cannot project child collections w/o Include
-            // See https://github.com/aspnet/EntityFrameworkCore/issues/9128
-            //var instructors = await _db.Instructors
-            //    .OrderBy(i => i.LastName)
-            //    .ProjectToListAsync<Model.Instructor>();
+                .ToListAsync(token);
 
             var courses = new List<Model.Course>();
             var enrollments = new List<Model.Enrollment>();
