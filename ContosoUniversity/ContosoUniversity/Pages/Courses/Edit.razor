@@ -11,7 +11,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <EditForm Model="@Data" method="post">
+            <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
                 <ValidationSummary />
                 <FormBlock>
                     <Label For="() => Data.Id" />
@@ -20,10 +20,12 @@
                 <FormBlock>
                     <Label For="() => Data.Title" />
                     <InputText @bind-Value="Data.Title" />
+                    <ValidationMessage For="() => Data.Title" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Credits" />
-                    <InputNumber @bind-Value="Data.Credits" />
+                    <InputNumber @bind-Value="Data.Credits" min="0" step="1" />
+                    <ValidationMessage For="() => Data.Credits" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.DepartmentId" />
@@ -33,9 +35,10 @@
                             <option value="@department.Id">@department.Name</option>
                         }
                     </InputSelectNumber>
+                    <ValidationMessage For="() => Data.DepartmentId" />
                 </FormBlock>
                 <FormBlock>
-                    <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
+                    <input type="submit" value="Save" class="btn btn-primary" />
                 </FormBlock>
             </EditForm>
         </div>

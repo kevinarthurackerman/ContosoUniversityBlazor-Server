@@ -18,14 +18,17 @@
                 <FormBlock>
                     <Label For="() => Data.Name" />
                     <InputText @bind-Value="Data.Name" />
+                    <ValidationMessage For="() => Data.Name" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Budget" />
-                    <InputNumber @bind-Value="Data.Budget" />
+                    <InputNumber @bind-Value="Data.Budget" min="0" step="0.01" />
+                    <ValidationMessage For="() => Data.Budget" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.StartDate" />
                     <InputDate @bind-Value="Data.StartDate" />
+                    <ValidationMessage For="() => Data.StartDate" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.InstructorId" />
@@ -35,6 +38,7 @@
                             <option value="@administrator.Id">@administrator.FullName</option>
                         }
                     </InputSelectNumber>
+                    <ValidationMessage For="() => Data.InstructorId" />
                 </FormBlock>
                 <FormBlock>
                     <input type="submit" value="Save" class="btn btn-primary" />

@@ -15,24 +15,28 @@
 
     <div class="row">
         <div class="col-md-4">
-            <EditForm Model="@Data" method="post">
+            <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
                 <ValidationSummary />
                 <InputNumber @bind-Value="Data.Id" hidden="hidden" />
                 <FormBlock>
                     <Label For="() => Data.LastName" />
                     <InputText @bind-Value="Data.LastName" />
+                    <ValidationMessage For="() => Data.LastName" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.FirstMidName" />
                     <InputText @bind-Value="Data.FirstMidName" />
+                    <ValidationMessage For="() => Data.FirstMidName" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.HireDate" />
                     <InputDate @bind-Value="Data.HireDate" />
+                    <ValidationMessage For="() => Data.HireDate" />
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.OfficeAssignmentLocation" />
                     <InputText @bind-Value="Data.OfficeAssignmentLocation" />
+                    <ValidationMessage For="() => Data.OfficeAssignmentLocation" />
                 </FormBlock>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
@@ -60,7 +64,7 @@
                     </div>
                 </div>
                 <FormBlock>
-                    <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
+                    <input type="submit" value="Save" class="btn btn-primary" />
                 </FormBlock>
             </EditForm>
         </div>

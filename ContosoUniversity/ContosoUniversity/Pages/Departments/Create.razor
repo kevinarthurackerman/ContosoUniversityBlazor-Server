@@ -20,7 +20,7 @@
                 </FormBlock>
                 <FormBlock>
                     <Label For="() => Data.Budget" />
-                    <InputNumber @bind-Value="Data.Budget" />
+                    <InputNumber @bind-Value="Data.Budget" min="0" step="0.01" />
                     <ValidationMessage For="() => Data.Budget" />
                 </FormBlock>
                 <FormBlock>
