@@ -11,10 +11,10 @@
 
     <div class="row">
         <div class="col-md-4">
-            <EditForm Model="@Data" method="POST">
+            <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
                 <ValidationSummary />
-                <InputNumber @bind-Value="Data.Id" />
-                <input value="@Convert.ToBase64String(Data.RowVersion)" hidden="hidden" />
+                <InputNumber @bind-Value="Data.Id" hidden="hidden" />
+                <RowVersion @bind-Value="Data.RowVersion" />
                 <FormBlock>
                     <Label For="() => Data.Name" />
                     <InputText @bind-Value="Data.Name" />
@@ -28,16 +28,16 @@
                     <InputDate @bind-Value="Data.StartDate" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.AdministratorId" />
-                    <InputSelect @bind-Value="Data.AdministratorId">
+                    <Label For="() => Data.InstructorId" />
+                    <InputSelectNumber @bind-Value="Data.InstructorId">
                         @foreach (var administrator in Data.Administrators)
                         {
                             <option value="@administrator.Id">@administrator.FullName</option>
                         }
-                    </InputSelect>
+                    </InputSelectNumber>
                 </FormBlock>
                 <FormBlock>
-                    <input type="submit" value="Save" class="btn btn-primary" @onclick="async () => await OnPostAsync(Data.Id)" />
+                    <input type="submit" value="Save" class="btn btn-primary" />
                 </FormBlock>
             </EditForm>
         </div>
@@ -57,7 +57,7 @@
     protected override async Task OnInitializedAsync()
         => Data = await _mediator.Send(new Query { Id = Id });
 
-    private async Task OnPostAsync(int id)
+    private async Task OnPostAsync()
     {
         await _mediator.Send(Data);
 
@@ -77,7 +77,7 @@
 
         public DateTime? StartDate { get; set; }
 
-        public int? AdministratorId { get; set; }
+        public int? InstructorId { get; set; }
         public int Id { get; set; }
         public byte[] RowVersion { get; set; }
 
@@ -91,7 +91,7 @@
             RuleFor(m => m.Name).NotNull().Length(3, 50);
             RuleFor(m => m.Budget).NotNull();
             RuleFor(m => m.StartDate).NotNull();
-            RuleFor(m => m.AdministratorId).NotNull();
+            RuleFor(m => m.InstructorId).NotNull();
         }
     }
 
@@ -120,7 +120,7 @@
                 .ProjectTo<Command>(_configuration)
                 .SingleOrDefaultAsync(token);
 
-            command.Administrators = await _db.Instructors.ToArrayAsync();
+            command.Administrators = await _db.Instructors.ToArrayAsync(token);
 
             return command;
         }
@@ -136,8 +136,7 @@
                 _mapper = mapper;
             }
 
-            public async Task<Unit> Handle(Command message,
-                CancellationToken token)
+            public async Task<Unit> Handle(Command message, CancellationToken token)
             {
                 var dept =
                     await _db.Departments.FindAsync(message.Id);
