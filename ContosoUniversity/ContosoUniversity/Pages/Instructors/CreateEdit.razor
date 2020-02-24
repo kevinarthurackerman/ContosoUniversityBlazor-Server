@@ -16,7 +16,7 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
-                <ValidationSummary />
+                <FluentValidationValidator />
                 <InputNumber @bind-Value="Data.Id" hidden="hidden" />
                 <FormBlock>
                     <Label For="() => Data.LastName" />

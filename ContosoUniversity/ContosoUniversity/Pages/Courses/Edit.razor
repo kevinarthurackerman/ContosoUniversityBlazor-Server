@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-4">
             <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
-                <ValidationSummary />
+                <FluentValidationValidator />
                 <FormBlock>
                     <Label For="() => Data.Id" />
                     <InputNumber @bind-Value="Data.Id" disabled/>
