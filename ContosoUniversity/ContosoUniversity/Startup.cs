@@ -42,7 +42,6 @@ namespace ContosoUniversity
             services.AddRazorPages(opt =>
                 {
                     opt.Conventions.ConfigureFilter(new DbContextTransactionPageFilter());
-                    opt.Conventions.ConfigureFilter(new ValidatorPageFilter());
                 })
                 .AddFluentValidation(cfg => { cfg.RegisterValidatorsFromAssemblyContaining<Startup>(); });
 
