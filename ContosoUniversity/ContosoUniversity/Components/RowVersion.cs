@@ -24,7 +24,7 @@ namespace ContosoUniversity.Components
             builder.AddAttribute(2, "class", CssClass);
             builder.AddAttribute(3, "value", BindConverter.FormatValue(CurrentValue));
             builder.AddAttribute(4, "onchange", EventCallback.Factory.CreateBinder<string>(this, __value => CurrentValueAsString = __value, CurrentValueAsString));
-            builder.AddAttribute(2, "hidden", true);
+            builder.AddAttribute(5, "hidden", true);
             builder.CloseElement();
         }
     }
