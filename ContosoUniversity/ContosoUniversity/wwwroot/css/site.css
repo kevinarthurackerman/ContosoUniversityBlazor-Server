@@ -22,7 +22,7 @@ label {
     font-weight: bold;
 }
 
-input, select {
+input:not([type='submit']):not([type='checkbox']), select {
     width: 200px;
     height: 30px;
 }

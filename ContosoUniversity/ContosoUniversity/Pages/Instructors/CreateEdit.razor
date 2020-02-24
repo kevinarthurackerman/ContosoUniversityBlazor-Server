@@ -1,9 +1,12 @@
-﻿@page "/instructors/{handler}"
+﻿@page "/instructors/Create"
+@page "/instructors/Edit/{id:int}"
+@using HtmlTags.Reflection
+@using Microsoft.EntityFrameworkCore.Internal
 
 @inject IMediator _mediator
 @inject NavigationManager  _navigationManager
 
-<h2>@(Data.Id == null ? "Create" : "Edit")</h2>
+<h2>@(Id == null ? "Create" : "Edit")</h2>
 
 <h4>Instructor</h4>
 <hr />
@@ -34,32 +37,30 @@
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
                         <table>
-                            <tr>
+                            <tbody>
                                 @{
-                                    int cnt = 0;
-                                    foreach (var course in Data.AssignedCourses)
+                                    var cnt = 0;
+                                    foreach (var row in Data.Courses.GroupBy(x => cnt++ / 3))
                                     {
-                                        if (cnt++ % 3 == 0)
-                                        {
-                                        @:</tr><tr>
-                                        }
-                                        <td>
-                                            <label style="font-weight: normal">
-                                                <input type="checkbox"
-                                                       name="data.selectedCourses"
-                                                       value="@course.CourseId"
-                                                       @(course.Assigned ? "checked=\" checked\"" : "" ) />
-                                                @course.CourseId :  @course.Title
-                                            </label>
-                                        </td>
+                                        <tr>
+                                            @foreach (var course in row.AsEnumerable())
+                                            {
+                                                <td>
+                                                    <label style="font-weight: normal">
+                                                        <InputCheckbox @bind-Value="course.Assigned"></InputCheckbox>
+                                                        @course.Id :  @course.Title
+                                                    </label>
+                                                </td>
+                                            }
+                                        </tr>
                                     }
                                 }
-                            </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
                 <FormBlock>
-                    <input type="submit" value="Save" class="btn btn-primary" />
+                    <input type="submit" value="Save" class="btn btn-primary" @onclick="OnPostAsync" />
                 </FormBlock>
             </EditForm>
         </div>
@@ -72,7 +73,22 @@
 </Loading>
 
 @code {
+    [Parameter]
+    public int? Id { get; set; }
+
     public Command Data { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == null) await OnGetCreateAsync();
+        else await OnGetEditAsync(new Query {Id = Id});
+    }
+
+    protected async Task OnPostAsync()
+    {
+        if (Id == null) await OnPostCreateAsync();
+        else await OnPostEditAsync();
+    }
 
     public async Task OnGetCreateAsync() => Data = await _mediator.Send(new Query());
 
@@ -107,13 +123,6 @@
 
     public class Command : IRequest<int>
     {
-        public Command()
-        {
-            AssignedCourses = new List<AssignedCourseData>();
-            CourseAssignments = new List<CourseAssignment>();
-            SelectedCourses = new string[0];
-        }
-
         public int? Id { get; set; }
 
         public string LastName { get; set; }
@@ -127,22 +136,13 @@
         public string OfficeAssignmentLocation { get; set; }
 
         [IgnoreMap]
-        public string[] SelectedCourses { get; set; }
+        public List<CourseData> Courses { get; set; }
 
-        [IgnoreMap]
-        public List<AssignedCourseData> AssignedCourses { get; set; }
-        public List<CourseAssignment> CourseAssignments { get; set; }
-
-        public class AssignedCourseData
+        public class CourseData
         {
-            public int CourseId { get; set; }
+            public int Id { get; set; }
             public string Title { get; set; }
             public bool Assigned { get; set; }
-        }
-
-        public class CourseAssignment
-        {
-            public int CourseId { get; set; }
         }
     }
 
@@ -161,7 +161,7 @@
         public MappingProfile()
         {
             CreateMap<Instructor, Command>();
-            CreateMap<CourseAssignment, Command.CourseAssignment>();
+            CreateMap<Course, Command.CourseData>();
         }
     }
 
@@ -181,36 +181,31 @@
             Command model;
             if (message.Id == null)
             {
-                model = new Command();
+                model = new Command {Courses = new List<Command.CourseData>()};
             }
             else
             {
                 model = await _db.Instructors
-                    //.Include(m => m.CourseAssignments)
-                    //.ThenInclude(ca => ca.Course)
                     .Where(i => i.Id == message.Id)
                     .ProjectTo<Command>(_configuration)
                     .SingleOrDefaultAsync(token);
-            }
 
-            PopulateAssignedCourseData(model);
+                var assignedCourseIds = await _db.CourseAssignments
+                    .Where(x => x.InstructorId == message.Id)
+                    .Select(x => x.CourseId)
+                    .ToArrayAsync(token);
+
+                model.Courses = (await _db.Courses.ProjectToListAsync<Command.CourseData>(_configuration))
+                    .Select(x =>
+                    {
+                        x.Assigned = assignedCourseIds.Contains(x.Id);
+                        return x;
+                    })
+                    .ToList();
+            }
 
             return model;
         }
-
-        private void PopulateAssignedCourseData(Command model)
-        {
-            var allCourses = _db.Courses;
-            var instructorCourses = new HashSet<int>(model.CourseAssignments.Select(c => c.CourseId));
-            var viewModel = allCourses.Select(course => new Command.AssignedCourseData
-            {
-                CourseId = course.Id,
-                Title = course.Title,
-                Assigned = instructorCourses.Any() && instructorCourses.Contains(course.Id)
-            }).ToList();
-            model.AssignedCourses = viewModel;
-        }
-
     }
 
     public class CommandHandler : IRequestHandler<Command, int>
@@ -236,9 +231,7 @@
                     .SingleAsync(token);
             }
 
-            var courses = await _db.Courses.ToListAsync(token);
-
-            instructor.Handle(message, courses);
+            instructor.Handle(message);
 
             await _db.SaveChangesAsync(token);
 

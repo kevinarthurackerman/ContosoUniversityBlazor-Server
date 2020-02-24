@@ -28,7 +28,7 @@
                 <Label For="() => Data.HireDate" />
             </dt>
             <dd>
-                @Data.HireDate
+                @Data.HireDate.ToString("d")
             </dd>
         </dl>
 
@@ -79,7 +79,7 @@
         public string FirstMidName { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]
-        public DateTime? HireDate { get; set; }
+        public DateTime HireDate { get; set; }
 
         [Display(Name = "Location")]
         public string OfficeAssignmentLocation { get; set; }

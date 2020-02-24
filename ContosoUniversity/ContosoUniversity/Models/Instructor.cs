@@ -30,12 +30,11 @@ namespace ContosoUniversity.Models
         public ICollection<CourseAssignment> CourseAssignments { get; private set; } = new List<CourseAssignment>();
         public OfficeAssignment OfficeAssignment { get; private set; }
 
-        public void Handle(CreateEdit.Command message,
-            IEnumerable<Course> courses)
+        public void Handle(CreateEdit.Command message)
         {
             UpdateDetails(message);
 
-            UpdateInstructorCourses(message.SelectedCourses, courses);
+            UpdateInstructorCourses(message.Courses);
         }
 
         public void Handle(Delete.Command message) => OfficeAssignment = null;
@@ -63,36 +62,28 @@ namespace ContosoUniversity.Models
             }
         }
 
-        private void UpdateInstructorCourses(string[] selectedCourses, IEnumerable<Course> courses)
+        private void UpdateInstructorCourses(IEnumerable<CreateEdit.Command.CourseData> courses)
         {
-            if (selectedCourses == null)
-            {
-                CourseAssignments = new List<CourseAssignment>();
-                return;
-            }
+            var assignedCourseIds = courses
+                .Where(x => x.Assigned).Select(x => x.Id)
+                .ToArray();
 
-            var selectedCoursesHs = new HashSet<string>(selectedCourses);
-            var instructorCourses = new HashSet<int>
-                (CourseAssignments.Select(c => c.CourseId));
+            var removedCourses = CourseAssignments
+                .Where(x => !assignedCourseIds.Contains(x.CourseId))
+                .ToArray();
 
-            foreach (var course in courses)
-            {
-                if (selectedCoursesHs.Contains(course.Id.ToString()))
-                {
-                    if (!instructorCourses.Contains(course.Id))
-                    {
-                        CourseAssignments.Add(new CourseAssignment { Course = course, Instructor = this });
-                    }
-                }
-                else
-                {
-                    if (instructorCourses.Contains(course.Id))
-                    {
-                        var toRemove = CourseAssignments.Single(ci => ci.CourseId == course.Id);
-                        CourseAssignments.Remove(toRemove);
-                    }
-                }
-            }
+            var previouslyAssignedCourseIds = CourseAssignments
+                .Select(x => x.CourseId)
+                .ToArray();
+
+            var addedCourses = assignedCourseIds
+                .Where(x => !previouslyAssignedCourseIds.Contains(x))
+                .Select(x => new CourseAssignment{ CourseId = x, InstructorId = Id })
+                .ToArray();
+
+            foreach (var removedCourse in removedCourses) CourseAssignments.Remove(removedCourse);
+
+            foreach(var addedCourse in addedCourses) CourseAssignments.Add(addedCourse);
         }
     }
 }
