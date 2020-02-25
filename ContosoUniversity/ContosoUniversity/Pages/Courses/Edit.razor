@@ -14,21 +14,21 @@
             <EditForm Model="@Data" OnValidSubmit="OnPostAsync">
                 <FluentValidationValidator />
                 <FormBlock>
-                    <Label For="() => Data.Id" />
+                    <Label @bind-Value="Data.Id" />
                     <InputNumber @bind-Value="Data.Id" disabled/>
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.Title" />
+                    <Label @bind-Value="Data.Title" />
                     <InputText @bind-Value="Data.Title" />
                     <ValidationMessage For="() => Data.Title" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.Credits" />
+                    <Label @bind-Value="Data.Credits" />
                     <InputNumber @bind-Value="Data.Credits" min="0" step="1" />
                     <ValidationMessage For="() => Data.Credits" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.DepartmentId" />
+                    <Label @bind-Value="Data.DepartmentId" />
                     <InputSelectNumber @bind-Value="Data.DepartmentId">
                         @foreach (var department in Data.Departments)
                         {

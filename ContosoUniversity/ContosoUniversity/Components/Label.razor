@@ -1,10 +1,18 @@
 ﻿@using System.Text.RegularExpressions
 
+@typeparam T
+
 <label @attributes="InputAttributes">@_label</label>
 
 @code {
     [Parameter]
-    public Expression<Func<object>> For { get; set; }
+    public T Value { get; set; }
+
+    [Parameter]
+    public EventCallback<T> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<T>> ValueExpression { get; set; }
 
     [Parameter]
     public Dictionary<string, object> InputAttributes { get; set; }
@@ -17,8 +25,8 @@
     {
         MemberExpression forMember;
 
-        if (For.Body is MemberExpression memberExpression) forMember = memberExpression;
-        else if (For.Body is UnaryExpression unaryExpression && unaryExpression.Operand is MemberExpression unaryMemberExpression)
+        if (ValueExpression.Body is MemberExpression memberExpression) forMember = memberExpression;
+        else if (ValueExpression.Body is UnaryExpression unaryExpression && unaryExpression.Operand is MemberExpression unaryMemberExpression)
             forMember = unaryMemberExpression;
         else throw new InvalidOperationException("Must be an expression terminating in a member");
 

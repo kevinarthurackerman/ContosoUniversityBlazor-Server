@@ -19,22 +19,22 @@
                 <FluentValidationValidator />
                 <InputNumber @bind-Value="Data.Id" hidden="hidden" />
                 <FormBlock>
-                    <Label For="() => Data.LastName" />
+                    <Label @bind-Value="Data.LastName" />
                     <InputText @bind-Value="Data.LastName" />
                     <ValidationMessage For="() => Data.LastName" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.FirstMidName" />
+                    <Label @bind-Value="Data.FirstMidName" />
                     <InputText @bind-Value="Data.FirstMidName" />
                     <ValidationMessage For="() => Data.FirstMidName" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.HireDate" />
+                    <Label @bind-Value="Data.HireDate" />
                     <InputDate @bind-Value="Data.HireDate" />
                     <ValidationMessage For="() => Data.HireDate" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.OfficeAssignmentLocation" />
+                    <Label @bind-Value="Data.OfficeAssignmentLocation" />
                     <InputText @bind-Value="Data.OfficeAssignmentLocation" />
                     <ValidationMessage For="() => Data.OfficeAssignmentLocation" />
                 </FormBlock>

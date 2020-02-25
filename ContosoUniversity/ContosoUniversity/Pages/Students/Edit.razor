@@ -15,17 +15,17 @@
                 <FluentValidationValidator />
                 <InputNumber @bind-Value="Data.Id" hidden="hidden"/>
                 <FormBlock>
-                    <Label For="() => Data.LastName" />
+                    <Label @bind-Value="Data.LastName" />
                     <InputText @bind-Value="Data.LastName" />
                     <ValidationMessage For="() => Data.LastName" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.FirstMidName" />
+                    <Label @bind-Value="Data.FirstMidName" />
                     <InputText @bind-Value="Data.FirstMidName" />
                     <ValidationMessage For="() => Data.FirstMidName" />
                 </FormBlock>
                 <FormBlock>
-                    <Label For="() => Data.EnrollmentDate" />
+                    <Label @bind-Value="Data.EnrollmentDate" />
                     <InputDate @bind-Value="Data.EnrollmentDate" />
                     <ValidationMessage For="() => Data.EnrollmentDate" />
                 </FormBlock>
