@@ -11,10 +11,18 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Budget</th>
-                <th>Start Date</th>
-                <th>Administrator</th>
+                <th>
+                    <Label For="() => Data[0].Name" />
+                </th>
+                <th>
+                    <Label For="() => Data[0].Budget" />
+                </th>
+                <th>
+                    <Label For="() => Data[0].StartDate" />
+                </th>
+                <th>
+                    <Label For="() => Data[0].AdministratorFullName" />
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -66,6 +74,7 @@
 
         public int Id { get; set; }
 
+        [DisplayName("Administrator")]
         public string AdministratorFullName { get; set; }
     }
 

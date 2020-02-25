@@ -22,15 +22,17 @@
         <thead>
             <tr>
                 <th>
-                    <a href="" @onclick="NameHeaderClicked">Last Name</a>
+                    <a href="" @onclick="NameHeaderClicked"><Label For="() => _data.Results[0].LastName" /></a>
                 </th>
                 <th>
-                    First Name
+                    <Label For="() => _data.Results[0].FirstMidName" />
                 </th>
                 <th>
-                    <a href="" @onclick="DateHeaderClicked">Enrollment Date</a>
+                    <a href="" @onclick="DateHeaderClicked"><Label For="() => _data.Results[0].EnrollmentDate" /></a>
                 </th>
-                <th>Enrollments Count</th>
+                <th>
+                    <Label For="() => _data.Results[0].EnrollmentsCount" />
+                </th>
                 <th></th>
             </tr>
         </thead>

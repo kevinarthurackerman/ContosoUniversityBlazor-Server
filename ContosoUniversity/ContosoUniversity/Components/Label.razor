@@ -15,6 +15,9 @@
     public Expression<Func<T>> ValueExpression { get; set; }
 
     [Parameter]
+    public Expression<Func<T>> For { get; set; }
+
+    [Parameter]
     public Dictionary<string, object> InputAttributes { get; set; }
 
     private static Regex _titleCaseToSentenceCaseRegex = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
@@ -30,8 +33,10 @@
     {
         MemberExpression forMember;
 
-        if (ValueExpression.Body is MemberExpression memberExpression) forMember = memberExpression;
-        else if (ValueExpression.Body is UnaryExpression unaryExpression && unaryExpression.Operand is MemberExpression unaryMemberExpression)
+        var expression = For ?? ValueExpression;
+
+        if (expression.Body is MemberExpression memberExpression) forMember = memberExpression;
+        else if (expression.Body is UnaryExpression unaryExpression && unaryExpression.Operand is MemberExpression unaryMemberExpression)
             forMember = unaryMemberExpression;
         else throw new InvalidOperationException("Must be an expression terminating in a member");
 

@@ -12,16 +12,16 @@
         <thead>
             <tr>
                 <th>
-                    Number
+                    <Label For="() => Data.Courses[0].Id" />
                 </th>
                 <th>
-                    Title
+                    <Label For="() => Data.Courses[0].Title" />
                 </th>
                 <th>
-                    Credits
+                    <Label For="() => Data.Courses[0].Credits" />
                 </th>
                 <th>
-                    Department
+                    <Label For="() => Data.Courses[0].DepartmentName" />
                 </th>
                 <th></th>
             </tr>
@@ -69,9 +69,11 @@
 
         public class Course
         {
+            [DisplayName("Number")]
             public int Id { get; set; }
             public string Title { get; set; }
             public int Credits { get; set; }
+            [DisplayName("Department")]
             public string DepartmentName { get; set; }
         }
     }

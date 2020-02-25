@@ -22,6 +22,14 @@ label {
     font-weight: bold;
 }
 
+th > label, th > a > label {
+    margin-bottom: 0;
+}
+
+a > label {
+    cursor: pointer;
+}
+
 input:not([type='submit']):not([type='checkbox']), select {
     width: 200px;
     height: 30px;

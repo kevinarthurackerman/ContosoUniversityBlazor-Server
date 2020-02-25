@@ -13,11 +13,21 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Last Name</th>
-                <th>First Name</th>
-                <th>Hire Date</th>
-                <th>Office</th>
-                <th>Courses</th>
+                <th>
+                    <Label For="() => Data.Instructors[0].LastName" />
+                </th>
+                <th>
+                    <Label For="() => Data.Instructors[0].FirstMidName" />
+                </th>
+                <th>
+                    <Label For="() => Data.Instructors[0].HireDate" />
+                </th>
+                <th>
+                    <Label For="() => Data.Instructors[0].OfficeAssignmentLocation" />
+                </th>
+                <th>
+                    <Label For="() => Data.Instructors[0].CourseAssignments" />
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -154,18 +164,17 @@
         {
             public int Id { get; set; }
 
-            [Display(Name = "Last Name")]
             public string LastName { get; set; }
 
-            [Display(Name = "First Name")]
+            [DisplayName("First Name")]
             public string FirstMidName { get; set; }
 
-            [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-            [Display(Name = "Hire Date")]
             public DateTime HireDate { get; set; }
 
+            [DisplayName("Office")]
             public string OfficeAssignmentLocation { get; set; }
 
+            [DisplayName("Courses")]
             public IEnumerable<CourseAssignment> CourseAssignments { get; set; }
         }
 
