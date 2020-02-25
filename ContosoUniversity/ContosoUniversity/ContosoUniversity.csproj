@@ -2,14 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>1.0.0</Version>
-    <Authors>ContosoUniversity</Authors>
-    <Product>ContosoUniversity</Product>
-    <Copyright></Copyright>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryUrl></RepositoryUrl>
-    <Company>ContosoUniversity</Company>
   </PropertyGroup>
 
   <ItemGroup>
