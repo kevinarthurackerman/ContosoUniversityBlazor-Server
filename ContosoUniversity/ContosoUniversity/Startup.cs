@@ -36,11 +36,9 @@ namespace ContosoUniversity
                 typeof(IPipelineBehavior<,>),
                 typeof(LoggingBehavior<,>));
 
-            services.AddSingleton<ValidatorLocator>();
+            services.AddFluentValidation(typeof(Startup));
 
             services.AddRazorPages();
-
-            services.AddValidatorsFromAssemblyContaining<Startup>();
 
             services.AddServerSideBlazor();
         }
