@@ -8,14 +8,14 @@
     <table>
         <tr>
             <th>
-                Enrollment Date
+                <Label For="() => Data.EnrollmentDateGroups[0].EnrollmentDate" />
             </th>
             <th>
-                Students
+                <Label For="() => Data.EnrollmentDateGroups[0].StudentCount" />
             </th>
         </tr>
 
-        @foreach (var item in Data)
+        @foreach (var item in Data.EnrollmentDateGroups)
         {
             <tr>
                 <td>
@@ -31,28 +31,36 @@
 </Loading>
 
 @code {
-    public IEnumerable<EnrollmentDateGroup> Data { get; private set; }
+    public Result Data { get; private set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var groups = await _context
-            .Students
-            .GroupBy(x => x.EnrollmentDate)
-            .Select(x => new EnrollmentDateGroup
-            {
-                EnrollmentDate = x.Key,
-                StudentCount = x.Count()
-            })
-            .ToListAsync();
-
-        Data = groups;
+        Data = new Result
+        {
+            EnrollmentDateGroups = await _context
+                .Students
+                .GroupBy(x => x.EnrollmentDate)
+                .Select(x => new Result.EnrollmentDateGroup
+                {
+                    EnrollmentDate = x.Key,
+                    StudentCount = x.Count()
+                })
+                .ToArrayAsync()
+        };
     }
 
-    public class EnrollmentDateGroup
+    public class Result
     {
-        [DataType(DataType.Date)]
-        public DateTime? EnrollmentDate { get; set; }
+        public EnrollmentDateGroup[] EnrollmentDateGroups { get; set; }
 
-        public int StudentCount { get; set; }
+        public class EnrollmentDateGroup
+        {
+            [DisplayName("Enrollment Date")]
+            [DataType(DataType.Date)]
+            public DateTime? EnrollmentDate { get; set; }
+
+            [DisplayName("Students")]
+            public int StudentCount { get; set; }
+        }
     }
 }

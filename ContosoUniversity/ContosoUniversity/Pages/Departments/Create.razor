@@ -70,10 +70,7 @@
     {
         private readonly SchoolContext _db;
 
-        public QueryHandler(SchoolContext db)
-        {
-            _db = db;
-        }
+        public QueryHandler(SchoolContext db) => _db = db;
 
         public async Task<Command> Handle(Query message, CancellationToken token)
         {
@@ -102,7 +99,7 @@
         public MappingProfiler() => CreateMap<Command, Department>(MemberList.Source);
     }
 
-    public class Command : IRequest<int>
+    public class Command : IRequest
     {
         [StringLength(50, MinimumLength = 3)]
         public string Name { get; set; }
@@ -117,10 +114,10 @@
         [DisplayName("Administrator")]
         public int? InstructorId { get; set; }
 
-        public IEnumerable<Instructor> Administrators { get; set; }
+        public Instructor[] Administrators { get; set; }
     }
 
-    public class CommandHandler : IRequestHandler<Command, int>
+    public class CommandHandler : IRequestHandler<Command>
     {
         private readonly SchoolContext _context;
         private readonly IMapper _mapper;
@@ -131,15 +128,13 @@
             _mapper = mapper;
         }
 
-        public async Task<int> Handle(Command message, CancellationToken token)
+        public Task<Unit> Handle(Command message, CancellationToken token)
         {
             var department = _mapper.Map<Command, Department>(message);
 
             _context.Departments.Add(department);
 
-            await _context.SaveChangesAsync(token);
-
-            return department.Id;
+            return Unit.Task;
         }
     }
 }

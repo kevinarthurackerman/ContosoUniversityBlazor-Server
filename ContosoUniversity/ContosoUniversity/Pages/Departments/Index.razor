@@ -55,12 +55,12 @@
 </Loading>
 
 @code {
-    public List<Model> Data { get; private set; }
+    public Model[] Data { get; private set; }
 
     protected override async Task OnInitializedAsync()
         => Data = await _mediator.Send(new Query());
 
-    public class Query : IRequest<List<Model>>
+    public class Query : IRequest<Model[]>
     {
     }
 
@@ -87,23 +87,22 @@
             );
     }
 
-    public class QueryHandler : IRequestHandler<Query, List<Model>>
+    public class QueryHandler : IRequestHandler<Query, Model[]>
     {
         private readonly SchoolContext _context;
         private readonly IConfigurationProvider _configuration;
 
-        public QueryHandler(SchoolContext context,
-            IConfigurationProvider configuration)
+        public QueryHandler(SchoolContext context, IConfigurationProvider configuration)
         {
             _context = context;
             _configuration = configuration;
         }
 
-        public Task<List<Model>> Handle(Query message,
+        public Task<Model[]> Handle(Query message,
             CancellationToken token) => _context.Departments
                 .Include(x => x.Instructor)
                 .ProjectTo<Model>(_configuration)
                 .DecompileAsync()
-                .ToListAsync(token);
+                .ToArrayAsync(token);
     }
 }

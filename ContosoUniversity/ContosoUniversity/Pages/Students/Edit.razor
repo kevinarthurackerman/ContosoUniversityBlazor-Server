@@ -135,7 +135,7 @@
         {
             _mapper.Map(message, await _db.Students.FindAsync(message.Id));
 
-            return default;
+            return Unit.Value;
         }
     }
 }

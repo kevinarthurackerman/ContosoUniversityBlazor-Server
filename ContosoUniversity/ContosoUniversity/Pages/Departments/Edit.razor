@@ -85,7 +85,7 @@
         public int Id { get; set; }
         public byte[] RowVersion { get; set; }
 
-        public IEnumerable<Instructor> Administrators { get; set; }
+        public Instructor[] Administrators { get; set; }
     }
 
     public class Validator : AbstractValidator<Command>
@@ -150,7 +150,7 @@
 
                 _mapper.Map(message, dept);
 
-                return default;
+                return Unit.Value;
             }
         }
     }

@@ -114,11 +114,17 @@
         return SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex);
     }
 
-    private Task PreviousClicked() =>
-        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex - 1);
+    private async Task PreviousClicked()
+    {
+        if (!_data.Results.HasPreviousPage) return;
+        await SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex - 1);
+    }
 
-    private Task NextClicked() =>
-        SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex + 1);
+    private async Task NextClicked()
+    {
+        if (!_data.Results.HasNextPage) return;
+        await SearchAndUpdateUrl(_currentSortOrder, _currentSearchString, _data.Results.PageIndex + 1);
+    }
 
     private async Task BackToFullListClicked()
     {
@@ -222,14 +228,6 @@
 
             var model = new Result();
             model.Results = await students
-                //.Select(src => new Model
-                //{
-                //    ID = src.Id,
-                //    FirstMidName = src.FirstMidName,
-                //    LastName = src.LastName,
-                //    EnrollmentsCount = src.Enrollments.Count(),
-                //    EnrollmentDate = src.EnrollmentDate
-                //})
                 .ProjectTo<Model>(_configuration)
                 .PaginatedListAsync(pageNumber, _pageSize);
 
